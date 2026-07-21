@@ -321,8 +321,8 @@ SELECT 7, 'Reward 7', 14, 2000, 1500, 500000, 500000, 500, 500, NOW(), NOW()
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM `turnover_reward_masters` WHERE `milestone_order` = 7);
 
--- Optional cleanup: remove non-plan milestone rows above Reward 7 (only if you want exact 7 rewards)
--- DELETE FROM `turnover_reward_masters` WHERE `milestone_order` > 7;
+-- Optional cleanup: keep only Rewards 1–7 (remove Reward 8, 9, ...)
+DELETE FROM `turnover_reward_masters` WHERE `milestone_order` > 7;
 
 -- Verify master data
 SELECT
