@@ -21,7 +21,7 @@ class TurnoverRewardController extends Controller
     {
         $page_titel = 'Reward Achievement';
 
-        $allrewards = TurnoverRewardMaster::orderBy('milestone_order', 'asc')->get();
+        $allrewards = TurnoverRewardMaster::where('milestone_order', '<=', 7)->orderBy('milestone_order', 'asc')->get();
 
         $user_id = Auth::user()->id;
 
