@@ -84,6 +84,37 @@
                             </select>
 						</div>
 					</div>
+
+					<div class="form-group">
+						<label class="col-sm-3 control-label">Registration Fee</label>
+						<div class="col-sm-5">
+							<input type="text" class="form-control" value="${{ number_format((float)($member->registration_fee ?? 1), 2) }}" readonly>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-3 control-label">Locked Reward</label>
+						<div class="col-sm-5">
+							<input type="text" class="form-control" value="${{ number_format((float)($member->locked_reward_bonus ?? 0), 2) }}" readonly>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-3 control-label">Unlocked Reward</label>
+						<div class="col-sm-5">
+							<input type="text" class="form-control" value="${{ number_format((float)($member->unlocked_reward_bonus ?? 0), 2) }}" readonly>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-3 control-label">Expired Reward</label>
+						<div class="col-sm-5">
+							<input type="text" class="form-control" value="${{ number_format((float)($member->expired_reward_bonus ?? 0), 2) }}" readonly>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-3 control-label">Reward Expiry</label>
+						<div class="col-sm-5">
+							<input type="text" class="form-control" value="{{ !empty($member->locked_reward_expiry_date) ? date('d/m/Y H:i:s', strtotime($member->locked_reward_expiry_date)) : '-' }}" readonly>
+						</div>
+					</div>
 					
 					<div class="form-group"><div class="col-sm-offset-3 col-sm-5">
 					  <input name="SUBMIT" type="submit" class="btn btn-blue" id="btnSubmit" value="Submit">

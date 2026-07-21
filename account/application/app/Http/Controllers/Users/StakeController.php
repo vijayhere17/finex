@@ -401,11 +401,13 @@ class StakeController extends Controller
         }
 
         $member = User::where('id','=',$member_id)->first();
+
+        $is_first_activation = ($member != null && $member->activation_date == null);
         
         if($member != null)
         {
             $member->kit_id = $kit->id;
-            if($member->activation_date == null)
+            if($is_first_activation)
             {
                 $member->activation_date = date("Y-m-d H:i:s");
             }
@@ -420,6 +422,12 @@ class StakeController extends Controller
         User::whereRaw('FIND_IN_SET(id,"'.$member->referral_uplines.'")')
             ->update(['team_investment'=> DB::raw('team_investment+'.$amount)]);
 
+        // Locked Reward Bonus: allocate once on first package activation only
+        if($is_first_activation)
+        {
+            $this->allocateLockedRewardBonus($member->id);
+        }
+
         // Update Direct Business
         if($member->referral_id > 0)
         {
@@ -431,13 +439,155 @@ class StakeController extends Controller
 
                 // Booster Income: this activation may complete the sponsor's 48hr / 3-direct target
                 $this->processBoosterIncome($refer);
+
+                // Locked Reward Unlock: 10% of this referral's package amount (once per referral activation)
+                if($is_first_activation)
+                {
+                    $this->unlockLockedRewardBonus($refer->id, $member->id, $amount);
+                }
             }
 
-            if($refer->kit_id > 0)
+            if($refer != null && $refer->kit_id > 0)
             {
                 self::processreferralcommission($refer->id, 1, $amount, $member->id, $kit->id, date("Y-m-d H:i:s"));
             }
         }
+    }
+
+    /**
+     * Allocate Locked Reward Bonus once per member on first package activation.
+     */
+    public function allocateLockedRewardBonus($member_id)
+    {
+        $member = User::find($member_id);
+
+        if($member == null)
+        {
+            return;
+        }
+
+        // Only once — already allocated if lock date is set or locked/unlocked/expired > 0
+        if($member->locked_reward_lock_date != null || ($member->locked_reward_bonus + $member->unlocked_reward_bonus + $member->expired_reward_bonus) > 0)
+        {
+            return;
+        }
+
+        $bonus = (float) config('income.locked_reward_bonus', 1000);
+        $days = (int) config('income.locked_reward_validity_days', 30);
+        $now = date('Y-m-d H:i:s');
+
+        $member->locked_reward_bonus = $bonus;
+        $member->unlocked_reward_bonus = 0;
+        $member->expired_reward_bonus = 0;
+        $member->locked_reward_lock_date = $now;
+        $member->locked_reward_expiry_date = date('Y-m-d H:i:s', strtotime($now.' + '.$days.' days'));
+        $member->save();
+    }
+
+    /**
+     * Unlock 10% of referral package amount from sponsor's remaining locked bonus.
+     * Once per referral (sponsor_unlock_done on the activating member). No TDS/fees.
+     */
+    public function unlockLockedRewardBonus($sponsor_id, $from_member_id, $package_amount)
+    {
+        $from = User::find($from_member_id);
+
+        if($from == null || (int) $from->sponsor_unlock_done === 1)
+        {
+            return;
+        }
+
+        $sponsor = User::find($sponsor_id);
+
+        if($sponsor == null)
+        {
+            return;
+        }
+
+        // Mark unlock attempted for this referral immediately to prevent duplicates
+        $from->sponsor_unlock_done = 1;
+        $from->save();
+
+        $remaining = (float) $sponsor->locked_reward_bonus;
+
+        if($remaining <= 0)
+        {
+            return;
+        }
+
+        $percent = (float) config('income.locked_reward_unlock_percent', 10);
+        $unlock_amount = formatdecimal(($package_amount * $percent) / 100, 4);
+
+        if($unlock_amount <= 0)
+        {
+            return;
+        }
+
+        if($unlock_amount > $remaining)
+        {
+            $unlock_amount = $remaining;
+        }
+
+        $sponsor->locked_reward_bonus = formatdecimal($remaining - $unlock_amount, 4);
+        $sponsor->unlocked_reward_bonus = formatdecimal(((float) $sponsor->unlocked_reward_bonus) + $unlock_amount, 4);
+        $sponsor->save();
+
+        $walletCon = app('App\Http\Controllers\Users\EarningWalletController');
+        $from_address = obscureAddress($from->username);
+        $description = 'Locked Reward Unlock From '.$from_address.' (Package $'.$package_amount.')';
+
+        // No TDS / admin / processing fee — 100% to earning wallet (earning_type 10)
+        $walletCon->addearningwalletlog($sponsor->id, 1, 10, $description, $unlock_amount, 0, 0, date('Y-m-d H:i:s'));
+    }
+
+    /**
+     * Expire remaining locked reward after validity window. Unlocked remains forever.
+     */
+    public function runLockedRewardExpiry()
+    {
+        $now = date('Y-m-d H:i:s');
+
+        $members = User::where('locked_reward_bonus', '>', 0)
+            ->whereNotNull('locked_reward_expiry_date')
+            ->where('locked_reward_expiry_date', '<=', $now)
+            ->get();
+
+        foreach($members as $member)
+        {
+            $remaining = (float) $member->locked_reward_bonus;
+
+            if($remaining <= 0)
+            {
+                continue;
+            }
+
+            $member->expired_reward_bonus = formatdecimal(((float) $member->expired_reward_bonus) + $remaining, 4);
+            $member->locked_reward_bonus = 0;
+            $member->save();
+        }
+    }
+
+    /**
+     * Required active directs for ROI Override level qualification.
+     */
+    public function getLevelIncomeRequiredDirects($level)
+    {
+        $rules = config('income.level_income_direct_rules', []);
+
+        foreach($rules as $rule)
+        {
+            if($level >= $rule['from'] && $level <= $rule['to'])
+            {
+                if(($rule['mode'] ?? null) === 'equal')
+                {
+                    return (int) $level;
+                }
+
+                return (int) ($rule['directs'] ?? 0);
+            }
+        }
+
+        return PHP_INT_MAX;
     }
 
     public function processBoosterIncome($refer)
@@ -1037,6 +1187,8 @@ $log->save();
         $from_member = User::where('id','=',$from_id)->first();
         
         $from_address = obscureAddress($from_member->username);
+
+        $max_depth = (int) config('income.level_income_max_depth', 200);
         
         if($member != null)
         {
@@ -1044,15 +1196,17 @@ $log->save();
             $per = $ladder[$level] ?? 0;
 
             $direct = User::where('referral_id','=',$member_id)->where('kit_id','>',0)->count();
+            $required_directs = $this->getLevelIncomeRequiredDirects($level);
            
             $commission = $amount * $per / 100;
             
             $dashboardCon = app('App\Http\Controllers\Users\DashboardController');
             $remain_commission = $dashboardCon->check3xEarningLimit($member->id, $commission);
             
-            if($member->kit_id > 0)
+            if($member->kit_id > 0 && $per > 0)
             {
-                if($direct >= $level || $member->level >= $level)
+                // ROI Override qualification: active directs threshold (or legacy member.level unlock)
+                if($direct >= $required_directs || (isset($member->level) && $member->level >= $level))
                 {
                     $description = 'Level '.$level.' Incentive From '.$from_address;
                     
@@ -1069,7 +1223,7 @@ $log->save();
             
             $level++;
 
-            if($member->referral_id > 0 && $level <= 20)
+            if($member->referral_id > 0 && $level <= $max_depth)
             {
                 $this->processlevelcommission($member->referral_id, $level, $amount, $from_id, $kit_id, $created_at);
             }

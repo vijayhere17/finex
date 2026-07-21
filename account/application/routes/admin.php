@@ -149,6 +149,8 @@ Route::middleware('adminauth:admin')->group(function () {
         Route::post('update-turnover-reward/{id}', 'updateReward');
 
         Route::get('turnover-reward-achievers', 'indexAchievers');
+        Route::get('reward-weekly-salary', 'indexWeeklySalary');
+        Route::get('locked-reward-report', 'indexLockedReward');
     });
 
     Route::controller(App\Http\Controllers\Admin\WithdrawalController::class)->group(function()

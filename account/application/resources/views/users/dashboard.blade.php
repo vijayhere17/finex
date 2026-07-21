@@ -583,31 +583,141 @@
             <!--            <div class="d-flex align-items-center justify-content-between mb-3">-->
             <!--                <h5 class="mb-0 gt-card-title">Bonus Summary</h5>-->
             <!--            </div>-->
-            <!--            <ul class="list-group list-group-flush">-->
-            <!--                <li class="list-group-item px-0 d-flex justify-content-between align-items-center">-->
-            <!--                    <span class="text-muted">Direct Sponsor Income</span>-->
-            <!--                    <span>{{ $object->total_referral_bonus }}</span>-->
-            <!--                </li>-->
-            <!--                <li class="list-group-item px-0 d-flex justify-content-between align-items-center">-->
-            <!--                    <span class="text-muted">Daily ROI Income</span>-->
-            <!--                    <span>{{ $object->total_daily_roi_bonus }}</span>-->
-            <!--                </li>-->
-            <!--                <li class="list-group-item px-0 d-flex justify-content-between align-items-center">-->
-            <!--                    <span class="text-muted">Daily Level Income</span>-->
-            <!--                    <span>{{ $object->total_daily_level_bonus }}</span>-->
-            <!--                </li>-->
-            <!--                <li class="list-group-item px-0 d-flex justify-content-between align-items-center">-->
-            <!--                    <span class="text-muted">Team Level Income</span>-->
-            <!--                    <span>{{ $object->total_team_level_bonus }}</span>-->
-            <!--                </li>-->
-            <!--                <li class="list-group-item px-0 d-flex justify-content-between align-items-center">-->
-            <!--                    <span class="text-muted">Reward Bonus</span>-->
-            <!--                    <span>{{ $object->total_salary_bonus }}</span>-->
-            <!--                </li>-->
-            <!--            </ul>-->
             <!--        </div>-->
             <!--    </div>-->
             <!--</div>-->
+
+            <div class="col-md-12 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h5 class="mb-0 gt-card-title">Income Summary</h5>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-6 col-md-3">
+                                <div class="bg-body p-3 rounded">
+                                    <p class="mb-0 text-muted">Today's Income</p>
+                                    <h5 class="mb-0">${{ $object->total_income_today }}</h5>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="bg-body p-3 rounded">
+                                    <p class="mb-0 text-muted">Total Income</p>
+                                    <h5 class="mb-0">${{ $object->total_earning }}</h5>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="bg-body p-3 rounded">
+                                    <p class="mb-0 text-muted">Direct Income</p>
+                                    <h5 class="mb-0">${{ $object->total_referral_bonus }}</h5>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="bg-body p-3 rounded">
+                                    <p class="mb-0 text-muted">ROI</p>
+                                    <h5 class="mb-0">${{ $object->total_daily_roi_bonus }}</h5>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="bg-body p-3 rounded">
+                                    <p class="mb-0 text-muted">Level Income</p>
+                                    <h5 class="mb-0">${{ $object->total_team_level_bonus }}</h5>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="bg-body p-3 rounded">
+                                    <p class="mb-0 text-muted">Reward Salary</p>
+                                    <h5 class="mb-0">${{ $object->total_reward_salary }}</h5>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="bg-body p-3 rounded">
+                                    <p class="mb-0 text-muted">Booster</p>
+                                    <h5 class="mb-0">${{ $object->total_booster_bonus }}</h5>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="bg-body p-3 rounded">
+                                    <p class="mb-0 text-muted">Cashback</p>
+                                    <h5 class="mb-0">${{ $object->total_cashback_bonus }}</h5>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="bg-body p-3 rounded">
+                                    <p class="mb-0 text-muted">Turnover / DMC</p>
+                                    <h5 class="mb-0">${{ $object->total_dmc_bonus }}</h5>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="bg-body p-3 rounded">
+                                    <p class="mb-0 text-muted">Life Time</p>
+                                    <h5 class="mb-0">${{ $object->total_lifetime_bonus }}</h5>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="bg-body p-3 rounded">
+                                    <p class="mb-0 text-muted">Locked Unlock Paid</p>
+                                    <h5 class="mb-0">${{ $object->total_locked_unlock_bonus }}</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-12 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h5 class="mb-0 gt-card-title">Locked Reward Bonus</h5>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-6 col-md-3">
+                                <div class="bg-body p-3 rounded">
+                                    <p class="mb-0 text-muted">Locked</p>
+                                    <h5 class="mb-0">${{ $object->locked_reward_bonus }}</h5>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="bg-body p-3 rounded">
+                                    <p class="mb-0 text-muted">Unlocked</p>
+                                    <h5 class="mb-0">${{ $object->unlocked_reward_bonus }}</h5>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="bg-body p-3 rounded">
+                                    <p class="mb-0 text-muted">Expired</p>
+                                    <h5 class="mb-0">${{ $object->expired_reward_bonus }}</h5>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="bg-body p-3 rounded">
+                                    <p class="mb-0 text-muted">Remaining Days</p>
+                                    <h5 class="mb-0">{{ $object->locked_reward_remaining_days }}</h5>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="bg-body p-3 rounded">
+                                    <p class="mb-0 text-muted">Lock Date</p>
+                                    <h6 class="mb-0">{{ $object->locked_reward_lock_date ? date('d/m/Y H:i', strtotime($object->locked_reward_lock_date)) : '-' }}</h6>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="bg-body p-3 rounded">
+                                    <p class="mb-0 text-muted">Reward Expiry</p>
+                                    <h6 class="mb-0">{{ $object->locked_reward_expiry_date ? date('d/m/Y H:i', strtotime($object->locked_reward_expiry_date)) : '-' }}</h6>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="bg-body p-3 rounded">
+                                    <p class="mb-0 text-muted">Weekly Salary</p>
+                                    <h5 class="mb-0">${{ number_format($object->weekly_salary, 2) }}</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <div class="row">
@@ -624,14 +734,14 @@
                                     <div class="d-flex align-items-center mb-2">
                                         <div class="flex-shrink-0">
                                             <span class="p-1 d-block bg-primary rounded-circle">
-                                                <span class="visually-hidden">Power Leg (40%)</span>
+                                                <span class="visually-hidden">Leg 1 (40%)</span>
                                             </span>
                                         </div>
                                         <div class="flex-grow-1 ms-2">
-                                            <p class="mb-0">Power Leg (40%)</p>
+                                            <p class="mb-0">Leg 1 (40%)</p>
                                         </div>
                                     </div>
-                                    <h6 class="mb-0">$ {{ $object->leg_data['leg_1_business'] }} <small class="text-muted">{{ $object->leg_data['leg_1_username'] }}</small></h6>
+                                    <h6 class="mb-0">$ {{ number_format($object->leg_data['leg_1_business'], 2) }} <small class="text-muted">{{ $object->leg_data['leg_1_username'] }}</small></h6>
                                 </div>
                             </div>
                             <div class="col-sm-4">
@@ -639,14 +749,14 @@
                                     <div class="d-flex align-items-center mb-2">
                                         <div class="flex-shrink-0">
                                             <span class="p-1 d-block bg-warning rounded-circle">
-                                                <span class="visually-hidden">Power Leg (30%)</span>
+                                                <span class="visually-hidden">Leg 2 (30%)</span>
                                             </span>
                                         </div>
                                         <div class="flex-grow-1 ms-2">
-                                            <p class="mb-0">Power Leg (30%)</p>
+                                            <p class="mb-0">Leg 2 (30%)</p>
                                         </div>
                                     </div>
-                                    <h6 class="mb-0">$ {{ $object->leg_data['leg_2_business'] }} <small class="text-muted">{{ $object->leg_data['leg_2_username'] }}</small>
+                                    <h6 class="mb-0">$ {{ number_format($object->leg_data['leg_2_business'], 2) }} <small class="text-muted">{{ $object->leg_data['leg_2_username'] }}</small>
                                     </h6>
                                 </div>
                             </div>
@@ -655,15 +765,42 @@
                                     <div class="d-flex align-items-center mb-2">
                                         <div class="flex-shrink-0">
                                             <span class="p-1 d-block bg-success rounded-circle">
-                                                <span class="visually-hidden">Power Leg (30%)</span>
+                                                <span class="visually-hidden">Leg 3 (30%)</span>
                                             </span>
                                         </div>
                                         <div class="flex-grow-1 ms-2">
-                                            <p class="mb-0">Power Leg (30%)</p>
+                                            <p class="mb-0">Leg 3 (30%)</p>
                                         </div>
                                     </div>
-                                    <h6 class="mb-0">$ {{ $object->leg_data['leg_3_business'] }} <small class="text-muted">{{ $object->leg_data['leg_3_username'] }}</small>
+                                    <h6 class="mb-0">$ {{ number_format($object->leg_data['leg_3_business'], 2) }} <small class="text-muted">{{ $object->leg_data['leg_3_username'] }}</small>
                                     </h6>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mt-3">
+                            <div class="col-6 col-md-3">
+                                <div class="bg-body p-2 rounded text-center">
+                                    <small class="text-muted">Directs</small>
+                                    <div><strong>{{ $object->reward_progress['directs'] }}</strong></div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="bg-body p-2 rounded text-center">
+                                    <small class="text-muted">Team</small>
+                                    <div><strong>{{ $object->reward_progress['team'] }}</strong></div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="bg-body p-2 rounded text-center">
+                                    <small class="text-muted">Self Business</small>
+                                    <div><strong>${{ number_format($object->reward_progress['self_business'], 2) }}</strong></div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="bg-body p-2 rounded text-center">
+                                    <small class="text-muted">Team Business</small>
+                                    <div><strong>${{ number_format($object->reward_progress['team_business'], 2) }}</strong></div>
                                 </div>
                             </div>
                         </div>
@@ -673,30 +810,36 @@
                                 <thead>
                                     <tr>
                                         <th>#</th>
-                                        <th>Rank</th>
-                                        <th>Business</th>
-                                        <th>Instant Reward</th>
+                                        <th>Reward</th>
+                                        <th>Direct</th>
+                                        <th>Team</th>
+                                        <th>Self Biz</th>
+                                        <th>Team Biz</th>
+                                        <th>Weekly Salary</th>
                                         <th>Status</th>
                                         <th>Achieve Date</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($object->allsalary as $rank)
-                                    
+                                    @foreach($object->allrewards as $reward)
                                     @php
-                                        $salaryCon = app('App\Http\Controllers\Users\SalaryController');
-                                        $status = $salaryCon->getstatus(Auth::user()->id, $rank->id);
+                                        $status = $object->reward_achievements->where('reward_id', $reward->id)->first();
                                     @endphp
                                     <tr>
-                                        <td>{{ $rank->id }}</td>
-                                        <td>{{ $rank->rank }}</td>
-                                        <td>${{ $rank->business }}</td>
-                                        <td>${{ $rank->bonus }}</td>
+                                        <td>{{ $reward->milestone_order }}</td>
+                                        <td>{{ $reward->title ?: ('Reward '.$reward->milestone_order) }}</td>
+                                        <td>{{ $reward->required_directs }}</td>
+                                        <td>{{ $reward->required_team }}</td>
+                                        <td>${{ number_format($reward->required_self_business, 0) }}</td>
+                                        <td>${{ number_format(($reward->required_team_business > 0 ? $reward->required_team_business : $reward->turnover_amount), 0) }}</td>
+                                        <td>${{ number_format(($reward->weekly_salary > 0 ? $reward->weekly_salary : $reward->cash_reward), 0) }}</td>
                                         <td>
                                             @if($status == null)
                                                 <span class="badge bg-warning">Pending</span>
+                                            @elseif((int)$status->status === 0)
+                                                <span class="badge bg-success">Active</span>
                                             @else
-                                                <span class="badge bg-success">Achieve</span>
+                                                <span class="badge bg-info">Achieved</span>
                                             @endif
                                         </td>
                                         <td>

@@ -14,6 +14,8 @@ use App\Models\BinaryPoints;
 use App\Models\SalaryMaster;
 use App\Models\SalaryAchiever;
 use App\Models\EarningWallet;
+use App\Models\TurnoverRewardMaster;
+use App\Models\TurnoverRewardAchiever;
 
 use DB;
 
@@ -59,10 +61,16 @@ class DashboardController extends Controller
         
         $object->total_referral_bonus = formatdecimal($balanceCon->getearningsum($user_id, 1), 4);
         $object->total_daily_roi_bonus = formatdecimal($balanceCon->getearningsum($user_id, 2), 4);
+        $object->total_cashback_bonus = formatdecimal($balanceCon->getearningsum($user_id, 3), 4);
         $object->total_daily_level_bonus = formatdecimal($balanceCon->getearningsum($user_id, 3), 4);
         $object->total_team_level_bonus = formatdecimal($balanceCon->getearningsum($user_id, 4), 4);
         $object->total_salary_bonus = formatdecimal($balanceCon->getearningsum($user_id, 5), 4);
-        $object->total_turnover_bonus = formatdecimal($balanceCon->getearningsum($user_id, 6), 4);
+        $object->total_dmc_bonus = formatdecimal($balanceCon->getearningsum($user_id, 6), 4);
+        $object->total_reward_salary = formatdecimal($balanceCon->getearningsum($user_id, 7), 4);
+        $object->total_turnover_bonus = formatdecimal($balanceCon->getearningsum($user_id, 7), 4);
+        $object->total_booster_bonus = formatdecimal($balanceCon->getearningsum($user_id, 8), 4);
+        $object->total_lifetime_bonus = formatdecimal($balanceCon->getearningsum($user_id, 9), 4);
+        $object->total_locked_unlock_bonus = formatdecimal($balanceCon->getearningsum($user_id, 10), 4);
 
         $object->total_income_today = formatdecimal(EarningWallet::where('member_id', $user_id)->where('txn_type', 1)->whereDate('created_at', today())->sum('amount'), 4);
         $object->recent_earning = EarningWallet::where('member_id', $user_id)->where('txn_type', 1)->orderBy('created_at', 'desc')->take(5)->get();
@@ -79,41 +87,43 @@ class DashboardController extends Controller
         
         $object->current_rank = SalaryMaster::find(Auth::user()->salary_id);
         $object->achieve_rank = SalaryAchiever::where('member_id','=',$user_id)->where('salary_id','=',Auth::user()->salary_id)->first();
+
+        // Locked Reward Bonus summary
+        $user = Auth::user();
+        $object->locked_reward_bonus = formatdecimal((float) ($user->locked_reward_bonus ?? 0), 4);
+        $object->unlocked_reward_bonus = formatdecimal((float) ($user->unlocked_reward_bonus ?? 0), 4);
+        $object->expired_reward_bonus = formatdecimal((float) ($user->expired_reward_bonus ?? 0), 4);
+        $object->locked_reward_lock_date = $user->locked_reward_lock_date;
+        $object->locked_reward_expiry_date = $user->locked_reward_expiry_date;
+        $object->locked_reward_remaining_days = 0;
+        if(!empty($user->locked_reward_expiry_date) && (float) ($user->locked_reward_bonus ?? 0) > 0)
+        {
+            $object->locked_reward_remaining_days = max(0, (int) ceil((strtotime($user->locked_reward_expiry_date) - time()) / 86400));
+        }
+
+        // Reward progress / achievement / weekly salary
+        $rewardCon = app('App\Http\Controllers\Users\TurnoverRewardController');
+        $object->reward_progress = $rewardCon->getRewardProgress($user_id);
+        $object->allrewards = TurnoverRewardMaster::orderBy('milestone_order', 'asc')->get();
+        $object->reward_achievements = TurnoverRewardAchiever::where('member_id', '=', $user_id)->with('reward')->orderBy('id', 'asc')->get();
+        $object->active_reward = $object->reward_achievements->where('status', 0)->sortByDesc('id')->first();
+        $object->weekly_salary = $object->active_reward ? (float) $object->active_reward->weekly_salary : 0;
         
         //
         
         $allsalary = SalaryMaster::get();
         $object->allsalary = $allsalary;
         
-        //
-        
-        $leg_data = []; // Initialize as an associative array
-        
-        $leg1 = User::where('referral_id', '=', $user_id)->orderByRaw('all_investment desc')->first(); // Power leg (60%)
-        $leg2 = User::where('referral_id', '=', $user_id)->orderByRaw('all_investment desc')->skip(1)->first(); // Weaker leg (20%)
-        
-        $leg_data['leg_1_username'] = $leg1 ? obscureAddress($leg1->username) : '';
-        $leg_data['leg_2_username'] = $leg2 ? obscureAddress($leg2->username) : '';
-        $leg_data['leg_3_username'] = 'Other'; 
-        
-        $leg_1_business = ($leg1 == null ? 0 : $leg1->all_investment);
-        $leg_2_business = ($leg2 == null ? 0 : $leg2->all_investment);
-        $leg_3_business = (Auth::user()->all_investment - $leg_1_business - $leg_2_business);
-        
-        if($leg_3_business > $leg_1_business)
-        {
-            $leg_data['leg_1_username'] = 'Other'; 
-            $leg_data['leg_3_username'] = $leg1 ? obscureAddress($leg1->username) : '';
-            
-            $leg_1_business = $leg_3_business;
-            $leg_3_business = ($leg1 == null ? 0 : $leg1->all_investment);
-        }
-        
-        $leg_data['leg_1_business'] = $leg_1_business; // $leg1 ? $leg1->all_investment : 0;
-        $leg_data['leg_2_business'] = $leg_2_business; // $leg2 ? $leg2->all_investment : 0;
-        $leg_data['leg_3_business'] = $leg_3_business;
-        
-        $object->leg_data = $leg_data;
+        // Top 3 sponsoring legs 40/30/30 (reuse reward leg calculator)
+        $legs = $rewardCon->getLegBusiness($user_id);
+        $object->leg_data = [
+            'leg_1_username' => $legs['leg1_username'],
+            'leg_2_username' => $legs['leg2_username'],
+            'leg_3_username' => $legs['leg3_username'],
+            'leg_1_business' => $legs['leg1_business'],
+            'leg_2_business' => $legs['leg2_business'],
+            'leg_3_business' => $legs['leg3_business'],
+        ];
         
         return view('users.dashboard', compact('page_titel', 'object'));
     }
