@@ -17,7 +17,7 @@ class TurnoverRewardController extends Controller
     {
         $page_titel = 'Reward Master';
 
-        $rewards = TurnoverRewardMaster::orderBy('milestone_order', 'asc')->get();
+        $rewards = TurnoverRewardMaster::where('milestone_order', '<=', 7)->orderBy('milestone_order', 'asc')->get();
 
         return view('admin.turnover-reward-master')->with(['page_titel'=>$page_titel, 'rewards'=>$rewards])->toJS();
     }
