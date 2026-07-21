@@ -205,15 +205,12 @@
                             <span class="pc-arrow"><i data-feather="chevron-right"></i></span>
                         </a>
                         <ul class="pc-submenu">
-                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/1/Direct Sponsor Income">Direct Income</a></li>
-                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/2/Daily ROI">Daily ROI</a></li>
-                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/4/Level Income">Level Income</a></li>
+                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/1/Direct Income">Direct Income</a></li>
+                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/2/Daily ROI Income">Daily ROI Income</a></li>
+                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/4/ROI Override Income">ROI Override Income</a></li>
                             <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/7/Reward Salary">Reward Salary</a></li>
                             <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/10/Locked Reward Unlock">Locked Reward Unlock</a></li>
-                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/8/Booster Income">Booster</a></li>
-                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/3/Cashback">Cashback</a></li>
-                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/9/Life Time">Life Time</a></li>
-                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/turnover-reward-achievement">Reward Progress</a></li>
+                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/9/Life Time Reward">Life Time Reward</a></li>
                         </ul>
                     </li>
                     
