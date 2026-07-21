@@ -149,7 +149,7 @@ class TurnoverRewardController extends Controller
      */
     public function runTurnoverAchiever()
     {
-        $ladder = TurnoverRewardMaster::orderBy('milestone_order', 'asc')->get();
+        $ladder = TurnoverRewardMaster::where('milestone_order', '<=', 7)->orderBy('milestone_order', 'asc')->get();
 
         $members = User::where('kit_id', '>', 0)->get();
 

@@ -27,7 +27,7 @@ class StakeController extends Controller
     //
     protected function depositaddress()
     {
-        return '0x4E80F277be553E8A1c562461d6d342a7fcBC5cCc';
+        return config('income.deposit_wallet', '0x5a0fc2285a37c1682dc3f351ca59a043b1a41050');
     }
 
     protected function contractabi(){
@@ -37,7 +37,22 @@ class StakeController extends Controller
     protected function contractaddr()
     {
         // USDT (BEP20) on BSC mainnet - 18 decimals
-        return '0x55d398326f99059fF775485246999027B3197955';
+        return config('income.usdt_contract', '0x55d398326f99059fF775485246999027B3197955');
+    }
+
+    public function getDepositWallet()
+    {
+        return $this->depositaddress();
+    }
+
+    public function getUsdtContract()
+    {
+        return $this->contractaddr();
+    }
+
+    public function getUsdtAbi()
+    {
+        return $this->contractabi();
     }
 
     //
