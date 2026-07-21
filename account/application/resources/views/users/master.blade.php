@@ -205,11 +205,15 @@
                             <span class="pc-arrow"><i data-feather="chevron-right"></i></span>
                         </a>
                         <ul class="pc-submenu">
-                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/1/Direct Sponsor Incentive">Direct Sponsor Incentive</a></li>
-                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/2/Daily ROI Incentive">Daily ROI Incentive</a></li>
-                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/3/Daily Level Incentive">Daily Level Incentive</a></li>
-                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/4/Team Level Incentive">Team Level Incentive</a></li>
-                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/5/Reward Incentive">Reward Incentive</a></li>                            
+                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/1/Direct Sponsor Income">Direct Income</a></li>
+                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/2/Daily ROI">Daily ROI</a></li>
+                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/4/Level Income">Level Income</a></li>
+                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/7/Reward Salary">Reward Salary</a></li>
+                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/10/Locked Reward Unlock">Locked Reward Unlock</a></li>
+                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/8/Booster Income">Booster</a></li>
+                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/3/Cashback">Cashback</a></li>
+                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/9/Life Time">Life Time</a></li>
+                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/turnover-reward-achievement">Reward Progress</a></li>
                         </ul>
                     </li>
                     

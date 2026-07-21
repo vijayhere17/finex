@@ -128,6 +128,8 @@ class SignupController extends Controller
             
             $umember = User::find($member->id);
             $umember->wallet_addr = $cleanString;
+            // Registration Fee = $1 (package activation remains unchanged)
+            $umember->registration_fee = config('income.registration_fee', 1);
             $umember->save();
     
             return response()->json(array('success'=> true, 'error'=> ''), 200);

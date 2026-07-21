@@ -206,8 +206,23 @@
 								</a>
 							</li>
 							<li>
-								<a href="{{ URL::to('/') }}/admin/earning-report/7/Turnover Reward">
-									<span class="title">Turnover Reward</span>
+								<a href="{{ URL::to('/') }}/admin/earning-report/7/Reward Salary">
+									<span class="title">Reward Salary</span>
+								</a>
+							</li>
+							<li>
+								<a href="{{ URL::to('/') }}/admin/earning-report/10/Locked Reward Unlock">
+									<span class="title">Locked Reward Unlock</span>
+								</a>
+							</li>
+							<li>
+								<a href="{{ URL::to('/') }}/admin/earning-report/3/Cashback">
+									<span class="title">Cashback</span>
+								</a>
+							</li>
+							<li>
+								<a href="{{ URL::to('/') }}/admin/earning-report/9/Life Time">
+									<span class="title">Life Time</span>
 								</a>
 							</li>
 						</ul> 
@@ -226,12 +241,22 @@
 							</li>
 							<li>
 								<a href="{{ URL::to('/') }}/admin/turnover-reward-master">
-									<span class="title">Turnover Reward Master</span>
+									<span class="title">Reward Master</span>
 								</a>
 							</li>
 							<li>
 								<a href="{{ URL::to('/') }}/admin/turnover-reward-achievers">
-									<span class="title">Turnover Reward Achievers</span>
+									<span class="title">Reward Achievers</span>
+								</a>
+							</li>
+							<li>
+								<a href="{{ URL::to('/') }}/admin/reward-weekly-salary">
+									<span class="title">Weekly Salary</span>
+								</a>
+							</li>
+							<li>
+								<a href="{{ URL::to('/') }}/admin/locked-reward-report">
+									<span class="title">Locked / Unlocked / Expired</span>
 								</a>
 							</li>
 						</ul>

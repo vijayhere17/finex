@@ -115,14 +115,76 @@
 		<div class="tile-stats tile-blue">
 			<div class="icon"><i class="entypo-users"></i></div>
 			<div class="num" data-start="0" data-end="{{ $refer_bonus }}" data-postfix="" data-duration="1500" data-delay="0" onClick="#" style="cursor:pointer;">{{ $refer_bonus }}</div>
-			<h3>Referral Incentive ($)</h3>
+			<h3>Direct Income ($)</h3>
 		</div>
 	</div>
 	<div class="col-sm-3">
 		<div class="tile-stats tile-blue">
 			<div class="icon"><i class="entypo-users"></i></div>
 			<div class="num" data-start="0" data-end="{{ $refer_upline_bonus }}" data-postfix="" data-duration="1500" data-delay="0" onClick="#" style="cursor:pointer;">{{ $refer_upline_bonus }}</div>
-			<h3>Generated Return</h3>
+			<h3>Daily ROI ($)</h3>
+		</div>
+	</div>
+	<div class="col-sm-3">
+		<div class="tile-stats tile-blue">
+			<div class="icon"><i class="entypo-users"></i></div>
+			<div class="num" data-start="0" data-end="{{ $binary_bonus }}" data-postfix="" data-duration="1500" data-delay="0" onClick="#" style="cursor:pointer;">{{ $binary_bonus }}</div>
+			<h3>Level Income ($)</h3>
+		</div>
+	</div>
+	<div class="col-sm-3">
+		<div class="tile-stats tile-blue">
+			<div class="icon"><i class="entypo-users"></i></div>
+			<div class="num" data-start="0" data-end="{{ $reward_salary_bonus ?? 0 }}" data-postfix="" data-duration="1500" data-delay="0" onClick="#" style="cursor:pointer;">{{ $reward_salary_bonus ?? 0 }}</div>
+			<h3>Reward Salary ($)</h3>
+		</div>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-sm-3">
+		<div class="tile-stats tile-green">
+			<div class="icon"><i class="entypo-users"></i></div>
+			<div class="num" data-start="0" data-end="{{ $booster_bonus ?? 0 }}" data-postfix="" data-duration="1500" data-delay="0" onClick="#" style="cursor:pointer;">{{ $booster_bonus ?? 0 }}</div>
+			<h3>Booster ($)</h3>
+		</div>
+	</div>
+	<div class="col-sm-3">
+		<div class="tile-stats tile-green">
+			<div class="icon"><i class="entypo-users"></i></div>
+			<div class="num" data-start="0" data-end="{{ $locked_unlock_bonus ?? 0 }}" data-postfix="" data-duration="1500" data-delay="0" onClick="#" style="cursor:pointer;">{{ $locked_unlock_bonus ?? 0 }}</div>
+			<h3>Locked Unlock ($)</h3>
+		</div>
+	</div>
+	<div class="col-sm-3">
+		<div class="tile-stats tile-orange">
+			<div class="icon"><i class="entypo-users"></i></div>
+			<div class="num" data-start="0" data-end="{{ $locked_reward_total ?? 0 }}" data-postfix="" data-duration="1500" data-delay="0" onClick="#" style="cursor:pointer;">{{ $locked_reward_total ?? 0 }}</div>
+			<h3>Locked Remaining ($)</h3>
+		</div>
+	</div>
+	<div class="col-sm-3">
+		<div class="tile-stats tile-red">
+			<div class="icon"><i class="entypo-users"></i></div>
+			<div class="num" data-start="0" data-end="{{ $expired_reward_total ?? 0 }}" data-postfix="" data-duration="1500" data-delay="0" onClick="#" style="cursor:pointer;">{{ $expired_reward_total ?? 0 }}</div>
+			<h3>Expired Locked ($)</h3>
+		</div>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-sm-3">
+		<div class="tile-stats tile-blue">
+			<div class="icon"><i class="entypo-users"></i></div>
+			<div class="num" data-start="0" data-end="{{ $unlocked_reward_total ?? 0 }}" data-postfix="" data-duration="1500" data-delay="0" onClick="#" style="cursor:pointer;">{{ $unlocked_reward_total ?? 0 }}</div>
+			<h3>Unlocked Total ($)</h3>
+		</div>
+	</div>
+	<div class="col-sm-3">
+		<div class="tile-stats tile-blue">
+			<div class="icon"><i class="entypo-users"></i></div>
+			<div class="num" data-start="0" data-end="{{ $generate_bonus }}" data-postfix="" data-duration="1500" data-delay="0" onClick="#" style="cursor:pointer;">{{ $generate_bonus }}</div>
+			<h3>Total Generated ($)</h3>
 		</div>
 	</div>
 </div> 

@@ -16,7 +16,7 @@ class ProcessDaily extends Command
     protected $signature = 'act:processdaily';
 
     /**
-     * The console command description.
+     * The description of the console command.
      *
      * @var string
      */
@@ -40,6 +40,7 @@ class ProcessDaily extends Command
     public function handle()
     {
        	$stakeCon = app('App\Http\Controllers\Users\StakeController');
+       	$rewardCon = app('App\Http\Controllers\Users\TurnoverRewardController');
 
        	// Log::info('process referral start...');
        	// $stakeCon->runReferralEarning();
@@ -53,11 +54,26 @@ class ProcessDaily extends Command
 			Log::info('process daily roi end...');
 		}
 
+		// Reward Qualification (daily)
+		Log::info('process reward qualification start...');
+		$rewardCon->runTurnoverAchiever();
+		Log::info('process reward qualification end...');
+
+		// Weekly Reward Salary — due rows only (return_date <= today), highest reward only
+		Log::info('process reward salary start...');
+		$rewardCon->runRewardSalary();
+		Log::info('process reward salary end...');
+
+		// Locked Reward Expiry (30-day validity)
+		Log::info('process locked reward expiry start...');
+		$stakeCon->runLockedRewardExpiry();
+		Log::info('process locked reward expiry end...');
+
 		//Log::info('process booster evaluation start...');
 		//$stakeCon->runBoosterEvaluation();
 		//Log::info('process booster evaluation end...');
 
-		// Legacy rank-based Salary income is replaced by Turnover Reward income (config/income.php).
+		// Legacy rank-based Salary income is replaced by Reward Salary (config/income.php).
 		// Kept here behind a flag rather than deleted, per business decision - flip legacy_salary_enabled to re-enable.
 		/* if(config('income.legacy_salary_enabled', false))
 		{

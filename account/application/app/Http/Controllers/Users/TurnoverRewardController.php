@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\TurnoverRewardMaster;
 use App\Models\TurnoverRewardAchiever;
+use App\Models\LevelReferral;
+use App\Models\EarningWallet;
 
 use Log;
 use DB;
@@ -17,15 +19,18 @@ class TurnoverRewardController extends Controller
 {
     public function indexachievers()
     {
-        $page_titel = 'Rewards Income';
+        $page_titel = 'Reward Achievement';
 
         $allrewards = TurnoverRewardMaster::orderBy('milestone_order', 'asc')->get();
 
         $user_id = Auth::user()->id;
 
         $leg_data = $this->getLegBusiness($user_id);
+        $progress = $this->getRewardProgress($user_id);
 
-        $achieved_ids = TurnoverRewardAchiever::where('member_id', '=', $user_id)->pluck('reward_id')->toArray();
+        $achieved = TurnoverRewardAchiever::where('member_id', '=', $user_id)->get();
+        $achieved_ids = $achieved->pluck('reward_id')->toArray();
+        $active_achiever = $achieved->where('status', 0)->sortByDesc('id')->first();
 
         return view('users.turnover-reward')->with([
             'page_titel' => $page_titel,
@@ -33,108 +38,266 @@ class TurnoverRewardController extends Controller
             'user_id' => $user_id,
             'leg_data' => $leg_data,
             'achieved_ids' => $achieved_ids,
+            'achieved' => $achieved,
+            'active_achiever' => $active_achiever,
+            'progress' => $progress,
         ])->toJS();
     }
 
-    // Same leg1/leg2/leg3 selection mechanism as the legacy Salary system (top-2 direct legs + remainder),
-    // but reading team_investment - all_investment is never actually maintained by the activation flow.
-    private function getLegBusiness($member_id)
+    /**
+     * Top 3 sponsoring legs only (not binary).
+     * Leg volume = direct self_investment + direct team_investment.
+     */
+    public function getLegBusiness($member_id)
+    {
+        $directs = User::where('referral_id', '=', $member_id)
+            ->select('id', 'username', 'self_investment', 'team_investment')
+            ->get()
+            ->map(function ($d) {
+                $d->leg_business = ((float) $d->self_investment) + ((float) $d->team_investment);
+                return $d;
+            })
+            ->sortByDesc('leg_business')
+            ->values();
+
+        $leg1 = $directs->get(0);
+        $leg2 = $directs->get(1);
+        $leg3 = $directs->get(2);
+
+        return [
+            'leg1_business' => $leg1 ? (float) $leg1->leg_business : 0,
+            'leg2_business' => $leg2 ? (float) $leg2->leg_business : 0,
+            'leg3_business' => $leg3 ? (float) $leg3->leg_business : 0,
+            'leg1_username' => $leg1 ? obscureAddress($leg1->username) : '',
+            'leg2_username' => $leg2 ? obscureAddress($leg2->username) : '',
+            'leg3_username' => $leg3 ? obscureAddress($leg3->username) : '',
+        ];
+    }
+
+    public function getRewardProgress($member_id)
     {
         $member = User::find($member_id);
 
-        $leg1 = User::where('referral_id', '=', $member_id)->orderByRaw('team_investment desc')->first();
-        $leg2 = User::where('referral_id', '=', $member_id)->orderByRaw('team_investment desc')->skip(1)->first();
+        $directs = User::where('referral_id', '=', $member_id)->where('kit_id', '>', 0)->count();
 
-        $leg1_business = ($leg1 == null ? 0 : $leg1->team_investment);
-        $leg2_business = ($leg2 == null ? 0 : $leg2->team_investment);
-        $leg3_business = ($member->team_investment - $leg1_business - $leg2_business);
+        $dashboardCon = app('App\Http\Controllers\Users\DashboardController');
+        $team = $dashboardCon->getDownlineTeam($member_id, 1);
 
-        if($leg3_business > $leg1_business)
-        {
-            $temp = $leg1_business;
-            $leg1_business = $leg3_business;
-            $leg3_business = $temp;
-        }
+        $self_business = (float) ($member->self_investment ?? 0);
+        $team_business = (float) ($member->team_investment ?? 0);
+
+        $legs = $this->getLegBusiness($member_id);
 
         return [
-            'leg1_business' => $leg1_business,
-            'leg2_business' => $leg2_business,
-            'leg3_business' => $leg3_business,
+            'directs' => $directs,
+            'team' => $team,
+            'self_business' => $self_business,
+            'team_business' => $team_business,
+            'legs' => $legs,
         ];
+    }
+
+    private function qualifiesForReward($progress, $reward)
+    {
+        $team_business = (float) ($reward->required_team_business > 0 ? $reward->required_team_business : $reward->turnover_amount);
+
+        $leg1_percent = config('income.reward_leg1_percent', 40);
+        $leg2_percent = config('income.reward_leg2_percent', 30);
+        $leg3_percent = config('income.reward_leg3_percent', 30);
+
+        $need_leg1 = $team_business * $leg1_percent / 100;
+        $need_leg2 = $team_business * $leg2_percent / 100;
+        $need_leg3 = $team_business * $leg3_percent / 100;
+
+        $required_directs = (int) ($reward->required_directs ?? 0);
+        $required_team = (int) ($reward->required_team ?? 0);
+        $required_self = (float) ($reward->required_self_business ?? 0);
+
+        if($required_directs > 0 && $progress['directs'] < $required_directs)
+        {
+            return false;
+        }
+
+        if($required_team > 0 && $progress['team'] < $required_team)
+        {
+            return false;
+        }
+
+        if($required_self > 0 && $progress['self_business'] < $required_self)
+        {
+            return false;
+        }
+
+        if($team_business > 0)
+        {
+            $legs = $progress['legs'];
+
+            if($legs['leg1_business'] < $need_leg1 || $legs['leg2_business'] < $need_leg2 || $legs['leg3_business'] < $need_leg3)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     // ==========================================================================================================================================================================================
 
+    /**
+     * Daily reward qualification. Stores achievement + weekly salary schedule.
+     * Highest reward only receives weekly salary (status=0). No duplicate achievements.
+     */
     public function runTurnoverAchiever()
     {
-        $dashboardCon = app('App\Http\Controllers\Users\DashboardController');
-        $walletCon = app('App\Http\Controllers\Users\EarningWalletController');
-
         $ladder = TurnoverRewardMaster::orderBy('milestone_order', 'asc')->get();
-
-        $leg1_percent = config('income.reward_leg1_percent');
-        $leg2_percent = config('income.reward_leg2_percent');
-        $leg3_percent = config('income.reward_leg3_percent');
 
         $members = User::where('kit_id', '>', 0)->get();
 
         foreach($members as $member)
         {
-            $legs = $this->getLegBusiness($member->id);
+            $progress = $this->getRewardProgress($member->id);
 
             foreach($ladder as $reward)
             {
-                $already = TurnoverRewardAchiever::where('member_id', '=', $member->id)->where('reward_id', '=', $reward->id)->exists();
+                $already = TurnoverRewardAchiever::where('member_id', '=', $member->id)
+                    ->where('reward_id', '=', $reward->id)
+                    ->exists();
 
                 if($already)
                 {
                     continue;
                 }
 
-                $need_leg1 = $reward->turnover_amount * $leg1_percent / 100;
-                $need_leg2 = $reward->turnover_amount * $leg2_percent / 100;
-                $need_leg3 = $reward->turnover_amount * $leg3_percent / 100;
-
-                if($legs['leg1_business'] >= $need_leg1 && $legs['leg2_business'] >= $need_leg2 && $legs['leg3_business'] >= $need_leg3)
+                if(!$this->qualifiesForReward($progress, $reward))
                 {
-                    // Insert the achiever row first (unique member_id+reward_id is the real race guard) -
-                    // only credit the wallet once the row is safely committed, so an overlapping cron run
-                    // can never double-pay the same milestone.
-                    try {
-                        DB::beginTransaction();
+                    continue;
+                }
 
-                        $achiever = new TurnoverRewardAchiever;
-                        $achiever->member_id = $member->id;
-                        $achiever->reward_id = $reward->id;
-                        $achiever->leg1_business = $legs['leg1_business'];
-                        $achiever->leg2_business = $legs['leg2_business'];
-                        $achiever->leg3_business = $legs['leg3_business'];
-                        $achiever->cash_reward = $reward->cash_reward;
-                        $achiever->save();
+                $weekly = (float) (($reward->weekly_salary > 0) ? $reward->weekly_salary : $reward->cash_reward);
 
-                        $commission = $reward->cash_reward;
+                try {
+                    DB::beginTransaction();
 
-                        $remain_commission = $dashboardCon->check3xEarningLimit($member->id, $commission);
+                    // Stop salary on any previous active reward — highest only
+                    TurnoverRewardAchiever::where('member_id', '=', $member->id)
+                        ->where('status', '=', 0)
+                        ->update(['status' => 1]);
 
-                        $description = 'Turnover Reward - Milestone #'.$reward->milestone_order;
+                    $achiever = new TurnoverRewardAchiever;
+                    $achiever->member_id = $member->id;
+                    $achiever->reward_id = $reward->id;
+                    $achiever->leg1_business = $progress['legs']['leg1_business'];
+                    $achiever->leg2_business = $progress['legs']['leg2_business'];
+                    $achiever->leg3_business = $progress['legs']['leg3_business'];
+                    $achiever->cash_reward = $weekly;
+                    $achiever->weekly_salary = $weekly;
+                    $achiever->directs_count = $progress['directs'];
+                    $achiever->team_count = $progress['team'];
+                    $achiever->self_business = $progress['self_business'];
+                    $achiever->team_business = $progress['team_business'];
+                    $achiever->return_date = date('Y-m-d', strtotime('+7 days'));
+                    $achiever->weeks_paid = 0;
+                    $achiever->status = 0;
+                    $achiever->save();
 
-                        if($remain_commission > 0)
-                        {
-                            $walletCon->addearningwalletlog($member->id, 1, 7, $description, $remain_commission, 0, 0, date("Y-m-d H:i:s"));
-                        }
-                        else
-                        {
-                            $walletCon->addearningwalletlog($member->id, 3, 7, $description, $commission, 0, 0, date("Y-m-d H:i:s"));
-                        }
+                    $member->reward_id = $reward->id;
+                    $member->save();
 
-                        DB::commit();
-                    } catch (\Exception $e) {
-                        DB::rollBack();
-                        Log::error($e);
-                        continue;
-                    }
+                    DB::commit();
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    Log::error($e);
+                    continue;
                 }
             }
         }
+    }
+
+    /**
+     * Pay weekly reward salary every 7 days for the highest active reward only.
+     * Respects 3X earning cap. Prevents duplicate salary for the same week.
+     */
+    public function runRewardSalary()
+    {
+        $dashboardCon = app('App\Http\Controllers\Users\DashboardController');
+        $walletCon = app('App\Http\Controllers\Users\EarningWalletController');
+
+        $today = date('Y-m-d');
+
+        $objects = TurnoverRewardAchiever::where('status', '=', 0)
+            ->where('weekly_salary', '>', 0)
+            ->where('return_date', '<=', $today)
+            ->get();
+
+        foreach($objects as $log)
+        {
+            $reward = TurnoverRewardMaster::find($log->reward_id);
+            $title = $reward ? ($reward->title ?: ('Reward #'.$reward->milestone_order)) : ('Reward #'.$log->reward_id);
+
+            // Duplicate salary guard: already paid today
+            $already_paid = EarningWallet::where('member_id', '=', $log->member_id)
+                ->where('earning_type', '=', 7)
+                ->where('txn_type', '=', 1)
+                ->whereDate('created_at', $today)
+                ->where('description', 'like', 'Reward Salary - '.$title.'%')
+                ->exists();
+
+            if($already_paid)
+            {
+                continue;
+            }
+
+            // Also skip if last_paid_at is within last 6 days
+            if($log->last_paid_at != null && strtotime($log->last_paid_at) > strtotime('-6 days'))
+            {
+                continue;
+            }
+
+            $commission = (float) $log->weekly_salary;
+            $description = 'Reward Salary - '.$title.' (Weekly)';
+
+            $remain_commission = $dashboardCon->check3xEarningLimit($log->member_id, $commission);
+
+            try {
+                DB::beginTransaction();
+
+                // Lock row to prevent overlapping cron double-pay
+                $fresh = TurnoverRewardAchiever::where('id', $log->id)->where('status', 0)->lockForUpdate()->first();
+
+                if($fresh == null || ($fresh->return_date != null && $fresh->return_date > $today))
+                {
+                    DB::rollBack();
+                    continue;
+                }
+
+                if($remain_commission > 0)
+                {
+                    $walletCon->addearningwalletlog($log->member_id, 1, 7, $description, $remain_commission, 0, 0, date('Y-m-d H:i:s'));
+                }
+                else
+                {
+                    $walletCon->addearningwalletlog($log->member_id, 3, 7, $description, $commission, 0, 0, date('Y-m-d H:i:s'));
+                }
+
+                $fresh->weeks_paid = ((int) $fresh->weeks_paid) + 1;
+                $fresh->last_paid_at = date('Y-m-d H:i:s');
+                $fresh->return_date = date('Y-m-d', strtotime('+7 days'));
+                $fresh->save();
+
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error($e);
+                continue;
+            }
+        }
+    }
+
+    /**
+     * Backward-compatible alias used by older cron comments.
+     */
+    public function runRewardEarning()
+    {
+        $this->runRewardSalary();
     }
 }

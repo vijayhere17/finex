@@ -21,7 +21,8 @@ class User extends Authenticatable
         'username',
         'leg',
         'referral_id',
-        'referral_uplines'
+        'referral_uplines',
+        'registration_fee',
     ];
 
     protected $hidden = [
