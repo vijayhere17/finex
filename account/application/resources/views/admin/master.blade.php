@@ -7,7 +7,7 @@
 
 		<title>Admin Panel - {{ env('APP_NAME') }}</title>
 
-		<link rel="shortcut icon" href="{{ URL::to('/') }}/assets/images/logo-lg.png" />
+		<link rel="shortcut icon" href="{{ URL::to('/') }}/assets/images/brand-logo.png" />
 
 		<link rel="stylesheet" href="{{ URL::asset('assets/admin/js/jquery-ui/css/no-theme/jquery-ui-1.10.3.custom.min.css') }}"  id="style-resource-1">
 
@@ -43,7 +43,7 @@
 					<!-- logo -->
 					<div class="logo">
 						<a href="{{URL::to('/')}}/admin/home">
-						    <img src="{{ URL::asset('assets/images/logo-lg.png') }}" alt="" style="height: 80px;"/>
+						    <img src="{{ URL::asset('assets/images/brand-logo.png') }}" alt="" style="height: 80px;"/>
 						</a>
 					</div>
 					<!-- logo collapse icon -->

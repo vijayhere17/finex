@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-	<link rel="shortcut icon" href="{{ URL::to('/') }}/assets/images/logo-lg.png" /> 
+	<link rel="shortcut icon" href="{{ URL::to('/') }}/assets/images/brand-logo.png" /> 
 
 	<title>Login - : {{ env('APP_NAME') }}</title>
 
@@ -54,7 +54,7 @@
 
 				<div class="form-group lockscreen-input">
 					<div class="lockscreen-thumb">
-					  <img src="{{ URL::to('/') }}/assets/images/logo-lg.png" width="120" height="120" class="img-circle" />
+					  <img src="{{ URL::to('/') }}/assets/images/brand-logo.png" width="120" height="120" class="img-circle" />
 					  <div class="lockscreen-progress-indicator">0%</div>
 				    </div>
 
