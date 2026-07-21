@@ -40,7 +40,7 @@ class EarningWalletController extends Controller
         $title_map = [
             1 => 'Direct Income',
             2 => 'Daily ROI Income',
-            4 => 'ROI Override Income',
+            4 => 'Team Level ROI Income',
             7 => 'Reward Salary',
             9 => 'Life Time Reward',
             10 => 'Locked Reward Unlock',
@@ -68,7 +68,7 @@ class EarningWalletController extends Controller
 
         $history_title = 'Income History';
         if($logtype == 2) { $history_title = 'ROI History'; }
-        if($logtype == 4) { $history_title = 'ROI Override History'; }
+        if($logtype == 4) { $history_title = 'Team Level ROI History'; }
         if($logtype == 7) { $history_title = 'Reward Salary History'; }
         if($logtype == 10) { $history_title = 'Locked Reward Unlock History'; }
 

@@ -9,9 +9,9 @@
 ### Config
 - `account/application/config/income.php` — 200-level ROI Override ladder, direct qualification rules, 40/30/30 legs, locked reward + registration fee
 
-### Migrations / SQL
-- `account/application/database/migrations/2026_07_21_090000_extend_mlm_income_reward_system.php`
+### Database SQL (phpMyAdmin only — no migrations)
 - `account/application/database/sql/2026_07_21_mlm_income_reward_system.sql`
+- `account/application/docs/SQL_ONLY_DEPLOY.md`
 
 ### Backend (extend existing — no duplicate modules)
 - `app/Http/Controllers/Users/StakeController.php` — Locked Reward allocate/unlock/expiry; ROI Override 200 levels + direct rules
@@ -48,11 +48,16 @@
 - `return_date`, `last_paid_at`, `weeks_paid`, `status` (0=active highest, 1=superseded)
 
 ### Deploy
-```bash
-cd account/application
-php artisan migrate
-# OR run: database/sql/2026_07_21_mlm_income_reward_system.sql
+```text
+1. Backup DB
+2. Run phpMyAdmin SQL file only:
+   account/application/database/sql/2026_07_21_mlm_income_reward_system.sql
+3. Order: SECTION A checks → B users → C reward tables → D index → E master data
+4. Optional: php artisan config:clear
 ```
+
+**No Laravel migration is required for this feature.**
+See `docs/SQL_ONLY_DEPLOY.md`.
 
 ---
 

@@ -201,8 +201,8 @@
 								</a>
 							</li>
 							<li>
-								<a href="{{ URL::to('/') }}/admin/earning-report/4/Level Income">
-									<span class="title">Level Income</span>
+								<a href="{{ URL::to('/') }}/admin/earning-report/4/Team Level ROI Income">
+									<span class="title">Team Level ROI Income</span>
 								</a>
 							</li>
 							<li>
