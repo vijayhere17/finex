@@ -48,11 +48,16 @@
 - `return_date`, `last_paid_at`, `weeks_paid`, `status` (0=active highest, 1=superseded)
 
 ### Deploy
-```bash
-cd account/application
-php artisan migrate
-# OR run: database/sql/2026_07_21_mlm_income_reward_system.sql
+```text
+1. Backup DB
+2. Run phpMyAdmin SQL file only:
+   account/application/database/sql/2026_07_21_mlm_income_reward_system.sql
+3. Order: SECTION A checks → B users → C reward tables → D index → E master data
+4. Optional: php artisan config:clear
 ```
+
+**No Laravel migration is required for this feature.**
+See `docs/SQL_ONLY_DEPLOY.md`.
 
 ---
 
