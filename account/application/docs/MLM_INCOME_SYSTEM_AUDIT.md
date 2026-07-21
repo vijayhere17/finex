@@ -9,9 +9,9 @@
 ### Config
 - `account/application/config/income.php` — 200-level ROI Override ladder, direct qualification rules, 40/30/30 legs, locked reward + registration fee
 
-### Migrations / SQL
-- `account/application/database/migrations/2026_07_21_090000_extend_mlm_income_reward_system.php`
+### Database SQL (phpMyAdmin only — no migrations)
 - `account/application/database/sql/2026_07_21_mlm_income_reward_system.sql`
+- `account/application/docs/SQL_ONLY_DEPLOY.md`
 
 ### Backend (extend existing — no duplicate modules)
 - `app/Http/Controllers/Users/StakeController.php` — Locked Reward allocate/unlock/expiry; ROI Override 200 levels + direct rules
