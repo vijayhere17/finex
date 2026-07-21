@@ -68,7 +68,7 @@
                     <div class="card mb-0">
                         <div class="card-body">
                             <div class="bg-body p-3 rounded">
-                                <p class="mb-0 text-muted">Today's Override</p>
+                                <p class="mb-0 text-muted">Today's Team Level ROI</p>
                                 <h5 class="mb-0 text-primary">${{ $today_sum }}</h5>
                             </div>
                         </div>
