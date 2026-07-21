@@ -93,7 +93,7 @@
             <div class="m-header">
                 <div class="b-brand text-primary">
                     <a href="{{ URL::to('/') }}/" class="gt-logo d-inline-flex align-items-center text-decoration-none">
-                        <img src="{{ URL::to('/') }}/assets/images/brand-logo.png" alt="Global Trade" class="gt-logo-img" style="height: 35px;"/>
+                        <img src="{{ URL::to('/') }}/assets/images/brand-logo.png" alt="GINANCE" class="gt-logo-img" style="height: 48px;"/>
                     </a>
                 </div>
             </div>
@@ -421,7 +421,7 @@
         <div class="footer-wrapper container-fluid">
             <div class="row">
                 <div class="col my-1">
-                    <p class="m-0">Copyright &#169; {{ date("Y") }} Global Trade. All Rights Reserved</p>
+                    <p class="m-0">Copyright &#169; {{ date("Y") }} GINANCE. All Rights Reserved</p>
                 </div>
             </div>
         </div>

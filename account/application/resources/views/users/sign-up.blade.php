@@ -212,7 +212,7 @@
     <div class='message'>
         <div class='check'>&#10004;</div>
         <p>Success</p>
-        <p>Dear user, <br> You have successfully signed up with <b>Global Trade</b>. Login your account and explore your future!</p>
+        <p>Dear user, <br> You have successfully signed up with <b>GINANCE</b>. Login your account and explore your future!</p>
         <button id='ok'>OK</button>
     </div>
 
