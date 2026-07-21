@@ -78,7 +78,7 @@
                     <div class="card mb-0">
                         <div class="card-body">
                             <div class="bg-body p-3 rounded">
-                                <p class="mb-0 text-muted">Total ROI Override</p>
+                                <p class="mb-0 text-muted">Total Team Level ROI</p>
                                 <h5 class="mb-0 text-primary">${{ $total_sum }}</h5>
                             </div>
                         </div>

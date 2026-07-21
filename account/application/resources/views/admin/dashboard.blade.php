@@ -129,7 +129,7 @@
 		<div class="tile-stats tile-blue">
 			<div class="icon"><i class="entypo-users"></i></div>
 			<div class="num" data-start="0" data-end="{{ $binary_bonus }}" data-postfix="" data-duration="1500" data-delay="0" onClick="#" style="cursor:pointer;">{{ $binary_bonus }}</div>
-			<h3>Level Income ($)</h3>
+			<h3>Team Level ROI Income ($)</h3>
 		</div>
 	</div>
 	<div class="col-sm-3">
