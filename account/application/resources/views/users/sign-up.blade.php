@@ -158,6 +158,10 @@
 
                         <h4 class="text-center f-w-500 mb-3">Create new account</h4>
 
+                        <div class="alert alert-info text-center py-2 mb-3">
+                            Registration Fee: <strong>${{ number_format((float)($registration_fee ?? 1), 2) }} USDT (BEP20)</strong>
+                        </div>
+
                         <div class="row">
                             <div class="col-sm-12">
                                 <x-input type="text" name="sponsor_id" id="sponsor_id" placeholder="Sponsor ID" value="" />
@@ -193,7 +197,7 @@
 
                         <div class="d-grid mt-4">
                             <button type="button" class="btn btn-info btn-connect">Connect Wallet</button>
-                            <button type="button" class="btn btn-primary btn-submit" style="display: none;">Sign Up</button>
+                            <button type="button" class="btn btn-primary btn-submit" style="display: none;">Pay ${{ number_format((float)($registration_fee ?? 1), 2) }} &amp; Sign Up</button>
                         </div>
 
                         <div class="d-flex justify-content-between align-items-end mt-4">
@@ -230,7 +234,15 @@
     <script src="{{ URL::to('/') }}/assets/common/js/jquery.blockUI.js"></script>
     <script src="{{ URL::to('/') }}/assets/common/js/modernizr.min.js"></script>
     <script src="{{ URL::to('/') }}/assets/common/js/common.0.8.js"></script>
-    <script src="{{ URL::to('/') }}/assets/js/users/sign-up.0.7.js"></script>
+    <script>
+        window.REG_FEE_CONFIG = {
+            to_address: @json($to_address ?? config('income.deposit_wallet')),
+            usdt_con_addr: @json($usdt_con_addr ?? config('income.usdt_contract')),
+            usdt_con_abi: @json($usdt_con_abi ?? '[]'),
+            registration_fee: {{ (float)($registration_fee ?? config('income.registration_fee', 1)) }}
+        };
+    </script>
+    <script src="{{ URL::to('/') }}/assets/js/users/sign-up.0.8.js?v=1"></script>
 
     <script>
         $("#sponsor_id").val("<?php echo $refer; ?>").change();

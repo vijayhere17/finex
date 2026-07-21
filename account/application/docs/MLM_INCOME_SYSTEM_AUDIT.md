@@ -131,10 +131,12 @@ Daily Cron (act:processdaily) — single scheduler, no duplicate
 ## Production Readiness Report
 
 - Extends existing controllers/models/cron/wallets — **no duplicate modules**
-- Migration + SQL provided; seed upserts Rewards 1–7
+- Raw MySQL SQL only (phpMyAdmin); Rewards 1–7 via UPDATE + INSERT
 - Duplicate guards: unique `(member_id,reward_id)`, `sponsor_unlock_done`, salary lockForUpdate + last_paid window
 - Admin + Member panels show required income/reward/locked metrics
-- Deploy step: run migration, clear config cache (`php artisan config:clear`), ensure cron `act:processdaily` at 00:05 remains scheduled
+- Deploy: run SQL file sections in order; optional `php artisan config:clear`; cron `act:processdaily` at 00:05
+- **No Laravel migration required**
+- Deposit wallet (Registration Fee + Topup USDT): `config('income.deposit_wallet')` = `0x5a0fc2285a37c1682dc3f351ca59a043b1a41050`
 
 ### Optional post-deploy checks
 1. Activate test ID → locked = 1000, expiry +30d
