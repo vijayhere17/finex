@@ -19,7 +19,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     
     <!-- [Favicon] icon -->
-    <link rel="icon" type="image/png" href="{{ URL::to('/') }}/assets/images/logo-lg.png"> <!-- [Font] Family -->
+    <link rel="icon" type="image/png" href="{{ URL::to('/') }}/assets/images/brand-logo.png"> <!-- [Font] Family -->
     <link rel="stylesheet" href="{{ URL::to('/') }}/assets/fonts/inter/inter.css" id="main-font-link" />
 
     <!-- [Tabler Icons] https://tablericons.com -->
