@@ -11,6 +11,7 @@ use App\Models\EarningWallet;
 use App\Models\PotentialWallet;
 use App\Models\WalletLog;
 use App\Models\User;
+use App\Models\UserStaked;
 use Cookie;
 use Log;
 use DB;
@@ -32,7 +33,54 @@ class EarningWalletController extends Controller
 
     public function earningWiseReport($logtype, $page_titel)
     {
-        return view('users.earning-wise-log')->with(['page_titel'=>$page_titel, 'logtype'=>$logtype])->toJS();
+        $member_id = Auth::user()->id;
+        $logtype = (int) $logtype;
+
+        // Normalize page titles for final business plan naming (UI only)
+        $title_map = [
+            1 => 'Direct Income',
+            2 => 'Daily ROI Income',
+            4 => 'ROI Override Income',
+            7 => 'Reward Salary',
+            9 => 'Life Time Reward',
+            10 => 'Locked Reward Unlock',
+        ];
+        if(isset($title_map[$logtype]))
+        {
+            $page_titel = $title_map[$logtype];
+        }
+
+        $today_sum = formatdecimal(EarningWallet::where('member_id', $member_id)
+            ->where('earning_type', $logtype)
+            ->where('txn_type', 1)
+            ->whereDate('created_at', today())
+            ->sum('amount'), 4);
+
+        $total_sum = formatdecimal($this->getearningsum($member_id, $logtype), 4);
+
+        $latest_package = UserStaked::where('member_id', $member_id)
+            ->with('kit')
+            ->orderBy('id', 'desc')
+            ->first();
+
+        $package_name = ($latest_package && $latest_package->kit) ? $latest_package->kit->name : '-';
+        $package_amount = $latest_package ? (float) $latest_package->paid_amount : 0;
+
+        $history_title = 'Income History';
+        if($logtype == 2) { $history_title = 'ROI History'; }
+        if($logtype == 4) { $history_title = 'ROI Override History'; }
+        if($logtype == 7) { $history_title = 'Reward Salary History'; }
+        if($logtype == 10) { $history_title = 'Locked Reward Unlock History'; }
+
+        return view('users.earning-wise-log')->with([
+            'page_titel' => $page_titel,
+            'logtype' => $logtype,
+            'today_sum' => $today_sum,
+            'total_sum' => $total_sum,
+            'package_name' => $package_name,
+            'package_amount' => $package_amount,
+            'history_title' => $history_title,
+        ])->toJS();
     }
     
     public function potentialReport()

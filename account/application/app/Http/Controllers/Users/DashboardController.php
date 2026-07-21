@@ -96,10 +96,11 @@ class DashboardController extends Controller
         $object->locked_reward_lock_date = $user->locked_reward_lock_date;
         $object->locked_reward_expiry_date = $user->locked_reward_expiry_date;
         $object->locked_reward_remaining_days = 0;
-        if(!empty($user->locked_reward_expiry_date) && (float) ($user->locked_reward_bonus ?? 0) > 0)
+        if(!empty($user->locked_reward_expiry_date))
         {
             $object->locked_reward_remaining_days = max(0, (int) ceil((strtotime($user->locked_reward_expiry_date) - time()) / 86400));
         }
+        $object->locked_reward_target = (float) config('income.locked_reward_bonus', 1000);
 
         // Reward progress / achievement / weekly salary
         $rewardCon = app('App\Http\Controllers\Users\TurnoverRewardController');

@@ -398,53 +398,6 @@
         <!-- [ Wallet / Income / Team stats ] -->
         <div class="row">
             
-            <div class="col-md-12 col-xxl-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between mb-3">
-                            <h5 class="mb-0 gt-card-title">Booster Timer Status</h5>
-                        </div>
-                        <div class="row g-2">
-                            <div class="col-12">
-                                @if(Auth::user()->kit_id > 0)
-                                    @if(Auth::user()->is_booster == 0) 
-                                        <div class="col-md-12 col-xxl-12 mt-3">
-                                            <div class="alert alert-primary d-flex align-items-center" role="alert">
-                                                <svg class="bi flex-shrink-0 me-2" width="24" height="24">
-                                                    <use xlink:href="#custom-calendar-1"></use>
-                                                </svg>
-                                                <div style="font-size: 18px;">
-                                                    <span id="booster_timer" style="font-weight: 900;">0 Days 00:00:00</span>
-                                                </div>
-                                            </div>
-                                        </div>  
-                                    @else    
-                                        <div class="col-md-12 col-xxl-12 mt-3">
-                                            <div class="alert alert-error d-flex align-items-center" role="alert">
-                                                <svg class="bi flex-shrink-0 me-2" width="24" height="24">
-                                                    <use xlink:href="#custom-star-bold"></use>
-                                                </svg>
-                                                <div style="font-size: 18px;">Congratulations! You will achieve Booster</div>
-                                            </div>
-                                        </div>    
-                                    @endif
-                                @else     
-                                    <div class="col-md-12 col-xxl-12 mt-3">
-                                        <div class="alert alert-primary d-flex align-items-center" role="alert">
-                                            <svg class="bi flex-shrink-0 me-2" width="24" height="24">
-                                                <use xlink:href="#custom-star-bold"></use>
-                                            </svg>
-                                            <div style="font-size: 18px;">Please Active Your ID.</div>
-                                        </div>
-                                    </div>  
-                                @endif  
-                                
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
             <div class="col-md-6 col-xxl-4 mb-4">
                 <div class="card h-100">
                     <div class="card-body">
@@ -507,7 +460,7 @@
                 </div>
             </div>
 
-            <div class="col-md-6 col-xxl-4">
+            <div class="col-md-6 col-xxl-4 mb-4">
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex align-items-center">
@@ -545,119 +498,80 @@
                     </div>
                 </div>
             </div>
-            
-            <div class="col-md-6 col-lg-4">
-                <div class="card bg-grey available-balance-card" style="background-color: rgb(22 166 181) !important;">
-                    <div class="card-body p-3">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div>
-                                <p class="mb-0 text-white text-opacity-75">Coin Price</p>
-                                <h4 class="mb-0 text-white">${{ getcoinrate() }}</h4>
+
+            <div class="col-md-6 col-xxl-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="avtar avtar-s bg-light-warning">
+                                <i class="ti ti-lock f-18"></i>
                             </div>
-                            <div class="avtar">
-                                <img src="{{ URL::to('/') }}/assets/images/logo-lg.png" alt="user-image" class="user-avtar wid-35" />
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-0 gt-card-title">Locked Reward Bonus</h6>
                             </div>
+                        </div>
+                        <div class="bg-body p-3 mt-3 rounded">
+                            <h3 class="mb-1 text-primary">${{ number_format((float)$object->locked_reward_bonus, 2) }}</h3>
+                            <p class="text-muted mb-0">Current Locked Balance</p>
                         </div>
                     </div>
                 </div>
-            
-                <div class="card bg-primary available-balance-card">
-                    <div class="card-body p-3">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div>
-                                <p class="mb-0 text-white text-opacity-75">Total Withdrawal</p>
-                                <h4 class="mb-0 text-white">{{ $object->total_withdrawal }}</h4>
+            </div>
+
+            <div class="col-md-6 col-xxl-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="avtar avtar-s bg-light-success">
+                                <i class="ti ti-lock-open f-18"></i>
                             </div>
-                            <div class="avtar">
-                                <i class="ti ti-arrows-left-right f-18"></i>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-0 gt-card-title">Unlocked Reward Bonus</h6>
                             </div>
+                        </div>
+                        <div class="bg-body p-3 mt-3 rounded">
+                            <h3 class="mb-1 text-primary">${{ number_format((float)$object->unlocked_reward_bonus, 2) }}</h3>
+                            <p class="text-muted mb-0">Total Unlocked Forever</p>
                         </div>
                     </div>
                 </div>
-            </div>    
-                
-            
-            <!--<div class="col-md-6 col-xxl-4 mb-4">-->
-            <!--    <div class="card h-100">-->
-            <!--        <div class="card-body">-->
-            <!--            <div class="d-flex align-items-center justify-content-between mb-3">-->
-            <!--                <h5 class="mb-0 gt-card-title">Bonus Summary</h5>-->
-            <!--            </div>-->
-            <!--        </div>-->
-            <!--    </div>-->
-            <!--</div>-->
+            </div>
 
             <div class="col-md-12 mb-4">
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex align-items-center justify-content-between mb-3">
-                            <h5 class="mb-0 gt-card-title">Income Summary</h5>
+                            <h5 class="mb-0 gt-card-title">Reward Progress</h5>
                         </div>
-                        <div class="row g-2">
-                            <div class="col-6 col-md-3">
-                                <div class="bg-body p-3 rounded">
-                                    <p class="mb-0 text-muted">Today's Income</p>
-                                    <h5 class="mb-0">${{ $object->total_income_today }}</h5>
+                        @php
+                            $unlockTarget = (float) ($object->locked_reward_target ?? 1000);
+                            $unlockDone = (float) $object->unlocked_reward_bonus;
+                            $unlockPct = $unlockTarget > 0 ? min(100, round(($unlockDone / $unlockTarget) * 100, 1)) : 0;
+                        @endphp
+                        <div class="row g-3 align-items-center">
+                            <div class="col-md-5">
+                                <p class="mb-1 text-muted">Unlocked</p>
+                                <h5 class="mb-2">${{ number_format($unlockDone, 2) }} / ${{ number_format($unlockTarget, 2) }}</h5>
+                                <div class="progress progress-thin">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ $unlockPct }}%;" aria-valuenow="{{ $unlockPct }}" aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
                             </div>
                             <div class="col-6 col-md-3">
                                 <div class="bg-body p-3 rounded">
-                                    <p class="mb-0 text-muted">Total Income</p>
-                                    <h5 class="mb-0">${{ $object->total_earning }}</h5>
+                                    <p class="mb-0 text-muted">Reward Expiry Date</p>
+                                    <h6 class="mb-0">{{ $object->locked_reward_expiry_date ? date('d/m/Y', strtotime($object->locked_reward_expiry_date)) : '-' }}</h6>
                                 </div>
                             </div>
-                            <div class="col-6 col-md-3">
+                            <div class="col-6 col-md-2">
                                 <div class="bg-body p-3 rounded">
-                                    <p class="mb-0 text-muted">Direct Income</p>
-                                    <h5 class="mb-0">${{ $object->total_referral_bonus }}</h5>
+                                    <p class="mb-0 text-muted">Remaining Days</p>
+                                    <h5 class="mb-0">{{ $object->locked_reward_remaining_days }}</h5>
                                 </div>
                             </div>
-                            <div class="col-6 col-md-3">
+                            <div class="col-md-2">
                                 <div class="bg-body p-3 rounded">
-                                    <p class="mb-0 text-muted">ROI</p>
-                                    <h5 class="mb-0">${{ $object->total_daily_roi_bonus }}</h5>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="bg-body p-3 rounded">
-                                    <p class="mb-0 text-muted">Level Income</p>
-                                    <h5 class="mb-0">${{ $object->total_team_level_bonus }}</h5>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="bg-body p-3 rounded">
-                                    <p class="mb-0 text-muted">Reward Salary</p>
-                                    <h5 class="mb-0">${{ $object->total_reward_salary }}</h5>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="bg-body p-3 rounded">
-                                    <p class="mb-0 text-muted">Booster</p>
-                                    <h5 class="mb-0">${{ $object->total_booster_bonus }}</h5>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="bg-body p-3 rounded">
-                                    <p class="mb-0 text-muted">Cashback</p>
-                                    <h5 class="mb-0">${{ $object->total_cashback_bonus }}</h5>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="bg-body p-3 rounded">
-                                    <p class="mb-0 text-muted">Turnover / DMC</p>
-                                    <h5 class="mb-0">${{ $object->total_dmc_bonus }}</h5>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="bg-body p-3 rounded">
-                                    <p class="mb-0 text-muted">Life Time</p>
-                                    <h5 class="mb-0">${{ $object->total_lifetime_bonus }}</h5>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="bg-body p-3 rounded">
-                                    <p class="mb-0 text-muted">Locked Unlock Paid</p>
-                                    <h5 class="mb-0">${{ $object->total_locked_unlock_bonus }}</h5>
+                                    <p class="mb-0 text-muted">Total Withdrawal</p>
+                                    <h6 class="mb-0">${{ $object->total_withdrawal }}</h6>
                                 </div>
                             </div>
                         </div>
@@ -669,46 +583,58 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex align-items-center justify-content-between mb-3">
-                            <h5 class="mb-0 gt-card-title">Locked Reward Bonus</h5>
+                            <h5 class="mb-0 gt-card-title">Income Summary</h5>
                         </div>
                         <div class="row g-2">
-                            <div class="col-6 col-md-3">
+                            <div class="col-6 col-md-4 col-xl-2">
                                 <div class="bg-body p-3 rounded">
-                                    <p class="mb-0 text-muted">Locked</p>
-                                    <h5 class="mb-0">${{ $object->locked_reward_bonus }}</h5>
+                                    <p class="mb-0 text-muted">Today's Income</p>
+                                    <h5 class="mb-0">${{ $object->total_income_today }}</h5>
                                 </div>
                             </div>
-                            <div class="col-6 col-md-3">
+                            <div class="col-6 col-md-4 col-xl-2">
                                 <div class="bg-body p-3 rounded">
-                                    <p class="mb-0 text-muted">Unlocked</p>
-                                    <h5 class="mb-0">${{ $object->unlocked_reward_bonus }}</h5>
+                                    <p class="mb-0 text-muted">Total Income</p>
+                                    <h5 class="mb-0">${{ $object->total_earning }}</h5>
                                 </div>
                             </div>
-                            <div class="col-6 col-md-3">
+                            <div class="col-6 col-md-4 col-xl-2">
                                 <div class="bg-body p-3 rounded">
-                                    <p class="mb-0 text-muted">Expired</p>
-                                    <h5 class="mb-0">${{ $object->expired_reward_bonus }}</h5>
+                                    <p class="mb-0 text-muted">Direct Income</p>
+                                    <h5 class="mb-0">${{ $object->total_referral_bonus }}</h5>
                                 </div>
                             </div>
-                            <div class="col-6 col-md-3">
+                            <div class="col-6 col-md-4 col-xl-2">
                                 <div class="bg-body p-3 rounded">
-                                    <p class="mb-0 text-muted">Remaining Days</p>
-                                    <h5 class="mb-0">{{ $object->locked_reward_remaining_days }}</h5>
+                                    <p class="mb-0 text-muted">Daily ROI Income</p>
+                                    <h5 class="mb-0">${{ $object->total_daily_roi_bonus }}</h5>
                                 </div>
                             </div>
-                            <div class="col-6 col-md-4">
+                            <div class="col-6 col-md-4 col-xl-2">
                                 <div class="bg-body p-3 rounded">
-                                    <p class="mb-0 text-muted">Lock Date</p>
-                                    <h6 class="mb-0">{{ $object->locked_reward_lock_date ? date('d/m/Y H:i', strtotime($object->locked_reward_lock_date)) : '-' }}</h6>
+                                    <p class="mb-0 text-muted">ROI Override Income</p>
+                                    <h5 class="mb-0">${{ $object->total_team_level_bonus }}</h5>
                                 </div>
                             </div>
-                            <div class="col-6 col-md-4">
+                            <div class="col-6 col-md-4 col-xl-2">
                                 <div class="bg-body p-3 rounded">
-                                    <p class="mb-0 text-muted">Reward Expiry</p>
-                                    <h6 class="mb-0">{{ $object->locked_reward_expiry_date ? date('d/m/Y H:i', strtotime($object->locked_reward_expiry_date)) : '-' }}</h6>
+                                    <p class="mb-0 text-muted">Reward Salary</p>
+                                    <h5 class="mb-0">${{ $object->total_reward_salary }}</h5>
                                 </div>
                             </div>
-                            <div class="col-6 col-md-4">
+                            <div class="col-6 col-md-4 col-xl-2">
+                                <div class="bg-body p-3 rounded">
+                                    <p class="mb-0 text-muted">Locked Unlock</p>
+                                    <h5 class="mb-0">${{ $object->total_locked_unlock_bonus }}</h5>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4 col-xl-2">
+                                <div class="bg-body p-3 rounded">
+                                    <p class="mb-0 text-muted">Life Time Reward</p>
+                                    <h5 class="mb-0">${{ $object->total_lifetime_bonus }}</h5>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4 col-xl-2">
                                 <div class="bg-body p-3 rounded">
                                     <p class="mb-0 text-muted">Weekly Salary</p>
                                     <h5 class="mb-0">${{ number_format($object->weekly_salary, 2) }}</h5>
@@ -863,32 +789,6 @@
 </div>
 @endsection
 @section('jscontent')
-
-@if(Auth::user()->kit_id > 0)
-    @if(Auth::user()->is_booster == 0) 
-        <script>
-            var countDownDate = new Date("<?php echo date('M d, Y H:i:s', strtotime(Auth::user()->activation_date. ' + 48 hours')); ?>").getTime();
-           
-            var x = setInterval(function() {
-                var now = new Date().getTime();
-                
-                var distance = countDownDate - now;
-
-                var days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                var seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-                document.getElementById("booster_timer").innerHTML = days+' Days '+hours+ ":"+minutes+":"+seconds;
-
-                if (distance < 0) {
-                    clearInterval(x);
-                    document.getElementById("booster_timer").innerHTML = "Expired";
-                }
-            }, 1000);
-        </script>
-    @endif  
-@endif 
 
 <script>
     function toClip(text) {
