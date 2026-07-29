@@ -180,7 +180,7 @@
                             <span class="pc-arrow"><i data-feather="chevron-right"></i></span>
                         </a>
                         <ul class="pc-submenu">
-                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/buy-robo">Topup Now</a></li>
+                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/buy-robo">Slot Activation</a></li>
                             <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/bot-request">Topup Request</a></li>
                         </ul>
                     </li>

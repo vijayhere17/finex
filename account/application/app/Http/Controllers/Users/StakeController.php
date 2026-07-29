@@ -57,15 +57,100 @@ class StakeController extends Controller
 
     //
 
+    /**
+     * Fixed sequential slot investment amounts (Slot 1 .. Slot 12).
+     */
+    protected function getFixedSlotAmounts()
+    {
+        return [10, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120, 10240, 20480];
+    }
+
+    /**
+     * Build sequential slot card states from purchase history.
+     * Exposes current_slot / next_slot / activation_status for the view
+     * without changing activation / ROI / referral business logic.
+     */
+    protected function buildSlotProgress($member, $packages)
+    {
+        $amounts = $this->getFixedSlotAmounts();
+
+        $packageByAmount = [];
+        foreach ($packages as $pkg) {
+            $packageByAmount[(string) (float) $pkg->amount] = $pkg;
+        }
+
+        $purchasedAmounts = UserStaked::where('member_id', '=', $member->id)
+            ->pluck('paid_amount')
+            ->map(function ($amount) {
+                return (float) $amount;
+            })
+            ->unique()
+            ->values()
+            ->all();
+
+        // Contiguous purchased slots starting from Slot 1.
+        $current_slot = 0;
+        foreach ($amounts as $index => $amount) {
+            if (in_array((float) $amount, $purchasedAmounts, true)) {
+                $current_slot = $index + 1;
+            } else {
+                break;
+            }
+        }
+
+        $next_slot = ($current_slot < count($amounts)) ? ($current_slot + 1) : 0;
+        $next_slot_amount = ($next_slot > 0) ? $amounts[$next_slot - 1] : 0;
+        $activation_status = ($current_slot > 0) ? 'Activated' : 'Registered';
+
+        // Attach computed progress fields for the Blade (no DB migration required).
+        $member->current_slot = $current_slot;
+        $member->next_slot = $next_slot;
+        $member->activation_status = $activation_status;
+
+        $slots = [];
+        foreach ($amounts as $index => $amount) {
+            $slotNumber = $index + 1;
+            $pkg = $packageByAmount[(string) (float) $amount] ?? null;
+
+            if ($slotNumber <= $current_slot) {
+                $state = 'purchased';
+            } elseif ($next_slot > 0 && $slotNumber === $next_slot) {
+                $state = 'ready';
+            } else {
+                $state = 'locked';
+            }
+
+            $slots[] = (object) [
+                'slot_number' => $slotNumber,
+                'amount' => $amount,
+                'state' => $state,
+                'stake_id' => $pkg->id ?? null,
+                'cap_multiplier' => $pkg->cap_multiplier ?? 0,
+                'name' => $pkg->name ?? ('Slot '.$slotNumber),
+            ];
+        }
+
+        return [
+            'slots' => $slots,
+            'current_slot' => $current_slot,
+            'next_slot' => $next_slot,
+            'next_slot_amount' => $next_slot_amount,
+            'activation_status' => $activation_status,
+        ];
+    }
+
     public function buyRobo()
     {
-        $page_titel = 'Topup Now';
+        $page_titel = 'Slot Activation';
 
         $coin_rate = getcoinrate();
         
         // Only the new amount-tiered ROI packages are offered for fresh activations - legacy named packages stay in the table for history only.
-        $packages = StakeMaster::where('is_admin','=',0)->where('is_travel','=',0)->where('ptype','=',2)->orderBy('percantage', 'asc')->get();
+        $packages = StakeMaster::where('is_admin','=',0)->where('is_travel','=',0)->where('ptype','=',2)->orderBy('amount', 'asc')->get();
         $packages = $this->attachTierRanges($packages);
+
+        $member = Auth::user();
+        $slotProgress = $this->buildSlotProgress($member, $packages);
 
         $usdt_con_addr = $this->contractaddr();
         
@@ -85,6 +170,11 @@ class StakeController extends Controller
     'page_titel'=>$page_titel,
     'coin_rate'=>$coin_rate,
     'packages'=>$packages,
+    'slots'=>$slotProgress['slots'],
+    'current_slot'=>$slotProgress['current_slot'],
+    'next_slot'=>$slotProgress['next_slot'],
+    'next_slot_amount'=>$slotProgress['next_slot_amount'],
+    'activation_status'=>$slotProgress['activation_status'],
     'usdt_con_addr'=>$usdt_con_addr,
     'usdt_con_abi'=>$usdt_con_abi,
     'to_address'=>$to_address,
@@ -134,10 +224,19 @@ class StakeController extends Controller
             $status = $request->get('status');
             $hash = $request->get('hash');
 
-            // Server-side mirror of the client rule so direct API calls can't bypass it.
-            if(!is_numeric($amount) || $amount < 50 || fmod((float)$amount, 50) != 0.0)
+            // Fixed sequential slots only — no custom / free-typed amounts.
+            $slotAmounts = $this->getFixedSlotAmounts();
+            $amountFloat = (float) $amount;
+            if (!is_numeric($amount) || !in_array($amountFloat, array_map('floatval', $slotAmounts), true))
             {
-                return response()->json(array('success'=>false, 'error'=>'Topup amount must be a multiple of $50 (minimum $50).'), 200);
+                return response()->json(array('success'=>false, 'error'=>'Invalid slot amount. Please activate a fixed slot.'), 200);
+            }
+
+            // Enforce sequential activation: only the next eligible slot may be purchased.
+            $slotProgress = $this->buildSlotProgress(Auth::user(), StakeMaster::where('is_admin','=',0)->where('is_travel','=',0)->where('ptype','=',2)->orderBy('amount', 'asc')->get());
+            if ((float) $slotProgress['next_slot_amount'] <= 0 || $amountFloat !== (float) $slotProgress['next_slot_amount'])
+            {
+                return response()->json(array('success'=>false, 'error'=>'Please activate slots in sequence. Only the next eligible slot can be purchased.'), 200);
             }
 
             // Rate comes from the amount actually paid, not the client-selected package.
