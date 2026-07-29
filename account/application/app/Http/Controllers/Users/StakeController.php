@@ -27,7 +27,7 @@ class StakeController extends Controller
     //
     protected function depositaddress()
     {
-        return config('income.deposit_wallet', '0x5a0fc2285a37c1682dc3f351ca59a043b1a41050');
+        return config('income.deposit_wallet', '0x4d02Eda4EE50E55D97974D0C7b8647Ea9853B0aE');
     }
 
     protected function contractabi(){

@@ -337,9 +337,8 @@ class WithdrawalController extends Controller
     
     public function runAutoWithdrawalClose()
     {
-        $fromaddr = '';
-        
-        $prikey = '';
+        $fromaddr = config('income.withdrawal_wallet', '');
+        $prikey = config('income.withdrawal_private_key', '');
     
         $object = WithdrawalLog::where('status','=',0)->where('mode','=',0)->where('amount','<=',500)->take(5)->get();
         
@@ -389,9 +388,8 @@ class WithdrawalController extends Controller
     
     private function instantAutoWithdrawal($wid)
     {
-        $fromaddr = '';
-        
-        $prikey = '';
+        $fromaddr = config('income.withdrawal_wallet', '');
+        $prikey = config('income.withdrawal_private_key', '');
     
         $wlog = WithdrawalLog::where('id','=',$wid)->where('status','=',0)->where('mode','=',0)->where('amount','<=',500)->first();
         if($wlog != null)

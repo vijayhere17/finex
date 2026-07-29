@@ -106,8 +106,8 @@ class WithdrawalController extends Controller
 		    {
 		        if($withdrawal->status == 0)
 		        {
-		            $fromaddr = '';
-                    $prikey = '';
+		            $fromaddr = config('income.withdrawal_wallet', '');
+                    $prikey = config('income.withdrawal_private_key', '');
                     
                     $curl = curl_init();
 
