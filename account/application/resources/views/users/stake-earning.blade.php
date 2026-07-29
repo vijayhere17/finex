@@ -33,7 +33,7 @@
                     <div class="card-body p-3">
                         <span class="m-t-10">Total Credit</span>
                         <h3 class="text-white m-0 cradit">0.00000000</h3>
-                        <i class="fab fa-credit" style="margin-top: -7px;"><img src="{{ URL::to('/') }}/assets/images/brand-logonew.png" alt="user-image" class="user-avtar wid-35" /></i>
+                        <i class="fab fa-credit" style="margin-top: -7px;"><img src="{{ URL::to('/') }}/assets/images/finex-mark.svg" alt="user-image" class="user-avtar wid-35" /></i>
                     </div>
                 </div>
             </div>
@@ -43,7 +43,7 @@
                     <div class="card-body p-3">
                         <span class="m-t-10">Total Debit</span>
                         <h3 class="text-white m-0 debit">0.00000000</h3>
-                        <i class="fab fa-debit" style="margin-top: -7px;"><img src="{{ URL::to('/') }}/assets/images/brand-logonew.png" alt="user-image" class="user-avtar wid-35" /></i>
+                        <i class="fab fa-debit" style="margin-top: -7px;"><img src="{{ URL::to('/') }}/assets/images/finex-mark.svg" alt="user-image" class="user-avtar wid-35" /></i>
                     </div>
                 </div>
             </div>
