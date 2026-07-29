@@ -11,7 +11,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     
     <!-- [Favicon] icon -->
-    <link rel="icon" type="image/svg+xml" href="{{ URL::to('/') }}/assets/images/finex-mark.svg">
+    <link rel="icon" type="image/png" href="{{ URL::to('/') }}/assets/images/logo-lg.png">
      <!-- [Font] Family -->
     <link rel="stylesheet" href="{{ URL::to('/') }}/assets/fonts/inter/inter.css" id="main-font-link" />
 
@@ -38,7 +38,7 @@
 
     <link rel="stylesheet" href="{{ URL::to('/') }}/assets/css/bg-animation.css" >
 
-    <link rel="stylesheet" href="{{ URL::to('/') }}/assets/css/finex-theme.css" >
+    <link rel="stylesheet" href="{{ URL::to('/') }}/assets/css/gold-theme.css" >
 
     <style>
         .pc-header .pc-head-link .pc-h-badge {
@@ -58,6 +58,32 @@
             width: 25px;
             border-radius: 50%;
         }
+
+        /* Finex text logo (replaces old image logo) */
+        .fx-brand {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: flex-start;
+            text-decoration: none !important;
+            line-height: 1.05;
+        }
+        .fx-brand-name {
+            font-weight: 800;
+            font-size: 1.55rem;
+            letter-spacing: 0.02em;
+            color: var(--gt-gold-1, #f8ce4e);
+        }
+        .fx-brand-tag {
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--gt-gold-2, #e6ad1f);
+            margin-top: 2px;
+        }
+        .auth-main .fx-brand { align-items: center; }
+        .auth-main .fx-brand-name { font-size: 2rem; }
+        .auth-main .fx-brand-tag { font-size: 0.7rem; letter-spacing: 0.14em; }
     </style>    
     @section('extra')
     @show
