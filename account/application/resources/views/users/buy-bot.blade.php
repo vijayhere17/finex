@@ -10,21 +10,21 @@
 @section('extra')
 <style>
     .slot-hero {
-        background: linear-gradient(120deg, #a5731c, #e6ad1f 55%, #f8ce4e);
+        background: linear-gradient(120deg, #0b3d91, #1e6fd9 55%, #3ba4f0);
         border-radius: 14px;
         padding: 1.25rem 1.5rem;
-        color: #0d0b07;
+        color: #ffffff;
         margin-bottom: 1.25rem;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        box-shadow: 0 8px 24px rgba(11, 61, 145, 0.25);
     }
     .slot-hero h2 {
         margin: 0;
         font-weight: 700;
-        color: #0d0b07;
+        color: #ffffff;
     }
     .slot-hero p {
         margin: 0.35rem 0 0;
-        opacity: 0.85;
+        opacity: 0.92;
         font-weight: 500;
     }
 
