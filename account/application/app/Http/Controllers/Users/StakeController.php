@@ -74,8 +74,10 @@ class StakeController extends Controller
     {
         $amounts = $this->getFixedSlotAmounts();
 
+        $packagesSorted = collect($packages)->sortBy('amount')->values();
+
         $packageByAmount = [];
-        foreach ($packages as $pkg) {
+        foreach ($packagesSorted as $pkg) {
             $packageByAmount[(string) (float) $pkg->amount] = $pkg;
         }
 
@@ -110,7 +112,8 @@ class StakeController extends Controller
         $slots = [];
         foreach ($amounts as $index => $amount) {
             $slotNumber = $index + 1;
-            $pkg = $packageByAmount[(string) (float) $amount] ?? null;
+            // Prefer exact amount match; fall back to ordered package index so cards remain actionable.
+            $pkg = $packageByAmount[(string) (float) $amount] ?? $packagesSorted->get($index);
 
             if ($slotNumber <= $current_slot) {
                 $state = 'purchased';
@@ -496,10 +499,22 @@ class StakeController extends Controller
             return null;
         }
 
-        // stake_masters.percantage is a float column - comparing it to a decimal exactly can miss due to
-        // float storage rounding (e.g. 0.3 stored as 0.30000001192...), so round both sides before matching.
+        // Prefer the stake_masters row whose fixed amount matches the paid amount.
+        // All slots may share the same percantage, so amount must disambiguate the kit.
+        $kit = StakeMaster::where('ptype', 2)
+                    ->whereRaw('ROUND(percantage, 3) = ?', [$tier->daily_percent])
+                    ->where('amount', '=', $amount)
+                    ->first();
+
+        if ($kit != null) {
+            return $kit;
+        }
+
+        // Fallback for legacy range packages: highest amount tier at or below paid amount.
         return StakeMaster::where('ptype', 2)
                     ->whereRaw('ROUND(percantage, 3) = ?', [$tier->daily_percent])
+                    ->where('amount', '<=', $amount)
+                    ->orderBy('amount', 'desc')
                     ->first();
     }
 
