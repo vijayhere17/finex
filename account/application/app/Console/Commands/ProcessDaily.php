@@ -3,92 +3,38 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Log;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
+use App\Services\DailyRoiService;
 
 class ProcessDaily extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'act:processdaily';
+    protected $signature = 'act:processdaily {--date= : Optional ROI date Y-m-d}';
 
-    /**
-     * The description of the console command.
-     *
-     * @var string
-     */
-    protected $description = 'Actions which will be executed daily';
+    protected $description = 'Finex daily process: Daily ROI + Level ROI distribution';
 
-    /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        parent::__construct();
-    }
-
-    /**
-     * Execute the console command.
-     *
-     * @return mixed
-     */
     public function handle()
     {
-       	$stakeCon = app('App\Http\Controllers\Users\StakeController');
-       	$rewardCon = app('App\Http\Controllers\Users\TurnoverRewardController');
+        $date = $this->option('date') ?: null;
 
-       	// Log::info('process referral start...');
-       	// $stakeCon->runReferralEarning();
-		// Log::info('process referral end...');
+        Log::info('Finex Daily ROI start...');
+        $this->info('Running Daily ROI distribution...');
 
-		// ROI accrues Monday-Friday only - date('N') is 6=Saturday, 7=Sunday.
-		if(!in_array(date('N'), [6, 7]))
-		{
-			Log::info('process daily roi start...');
-			$stakeCon->runDailyROI();
-			Log::info('process daily roi end...');
-		}
+        $summary = app(DailyRoiService::class)->distribute($date);
 
-		// Reward Qualification (daily)
-		Log::info('process reward qualification start...');
-		$rewardCon->runTurnoverAchiever();
-		Log::info('process reward qualification end...');
+        Log::info('Finex Daily ROI end', $summary);
+        $this->info('Paid: '.$summary['paid'].' | Skipped: '.$summary['skipped'].' | Closed: '.$summary['closed'].' | Date: '.$summary['roiDate']);
 
-		// Weekly Reward Salary — due rows only (return_date <= today), highest reward only
-		Log::info('process reward salary start...');
-		$rewardCon->runRewardSalary();
-		Log::info('process reward salary end...');
+        // Legacy reward / locked-reward / salary crons disabled for new compensation plan.
+        if (config('income.legacy_reward_cron_enabled', false)) {
+            $rewardCon = app('App\Http\Controllers\Users\TurnoverRewardController');
+            $rewardCon->runTurnoverAchiever();
+            $rewardCon->runRewardSalary();
+        }
 
-		// Locked Reward Expiry (30-day validity)
-		Log::info('process locked reward expiry start...');
-		$stakeCon->runLockedRewardExpiry();
-		Log::info('process locked reward expiry end...');
+        if (config('income.legacy_locked_reward_enabled', false)) {
+            app('App\Http\Controllers\Users\StakeController')->runLockedRewardExpiry();
+        }
 
-		//Log::info('process booster evaluation start...');
-		//$stakeCon->runBoosterEvaluation();
-		//Log::info('process booster evaluation end...');
-
-		// Legacy rank-based Salary income is replaced by Reward Salary (config/income.php).
-		// Kept here behind a flag rather than deleted, per business decision - flip legacy_salary_enabled to re-enable.
-		/* if(config('income.legacy_salary_enabled', false))
-		{
-			$salaryCon = app('App\Http\Controllers\Users\SalaryController');
-
-			Log::info('process salary achiever start...');
-			$salaryCon->runSalaryAchiever();
-			Log::info('process salary achiever end...');
-
-			if(date("D") == 'Mon')
-			{
-				Log::info('process salary earning start...');
-				$salaryCon->runSalaryEarning();
-				Log::info('process salary earning end...');
-			}
-		} */
+        return Command::SUCCESS;
     }
 }

@@ -85,21 +85,26 @@ Route::group(['middleware' => 'auth'], function ()
 
         Route::get('downline-report/{leg}', 'downlinerep')->name('downline-report');
 
+        // Legacy binary tree / level achievement kept but not linked in Finex sidebar
         Route::get('tree-view', 'treeview')->name('tree-view');
-        
         Route::get('level-achievement', 'levelachievement')->name('level-achievement');
 
-        //
-
         Route::get('get-referral-report', 'getReferralList');
-
         Route::get('get-downline-report', 'getDownlineList');
-
         Route::get('get-binary-tree-view', 'getTreeView');
-
         Route::post('get-view-tree-user', 'getViewUserID');
-
         Route::post('process-check-tree-user','checkTreeUser');
+    });
+
+    // Finex new-plan panel pages
+    Route::controller(App\Http\Controllers\Users\FinexPanelController::class)->group(function()
+    {
+        Route::get('my-slots', 'mySlots')->name('my-slots');
+        Route::get('daily-roi-history', 'dailyRoiHistory')->name('daily-roi-history');
+        Route::get('level-roi-income', 'levelRoiIncome')->name('level-roi-income');
+        Route::get('auto-upgrade', 'autoUpgrade')->name('auto-upgrade');
+        Route::get('transactions', 'transactions')->name('transactions');
+        Route::get('genealogy', 'genealogy')->name('genealogy');
     });
 
     Route::controller(App\Http\Controllers\Users\StakeController::class)->group(function()
@@ -110,20 +115,11 @@ Route::group(['middleware' => 'auth'], function ()
         
         Route::post('process-submit-capital-withdrawal','capitalWithdrawal');
         
-        //
-        
         Route::get('get-run-temp-run-referral-earning', 'tempSetReferralLevelEarning');
-        
         Route::get('get-run-temp-set-booster', 'setBooster');
-        
         Route::get('get-minus-business', 'businessMinus');
         
-        // Route::get('get-run-temp-roi', 'runTempDailyROI');
-        
-        //
-        
         Route::get('buy-robo-wallet', 'buyRoboWallet')->name('buy-robo-wallet');
-        
         Route::post('process-submit-buy-bot-wallet','submitBotTxnByWallet');
     });
 

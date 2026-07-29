@@ -26,6 +26,9 @@ class User extends Authenticatable
         'activation_status',
         'qualified_active_directs',
         'direct_roi_percent',
+        'auto_upgrade_balance',
+        'current_slot',
+        'next_slot',
     ];
 
     protected $hidden = [

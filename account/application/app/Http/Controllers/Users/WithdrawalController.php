@@ -327,34 +327,10 @@ class WithdrawalController extends Controller
         return $object;
     }
 
-    // Withdrawal charge tiers by days elapsed since the member's last non-rejected withdrawal of the
-    // same mode (or since activation if there's none yet): <30 days = 10%, <60 days = 5%, >=60 days = 0%.
+    // New Finex plan: flat 10% withdrawal processing fee.
     private function resolveWithdrawalChargePercent($member_id, $mode)
     {
-        $member = User::find($member_id);
-
-        $last = WithdrawalLog::where('member_id', '=', $member_id)
-                    ->where('mode', '=', $mode)
-                    ->where('status', '!=', 3)
-                    ->orderBy('created_at', 'desc')
-                    ->first();
-
-        $anchor = $last ? $last->created_at : ($member ? $member->activation_date : null);
-
-        $days_elapsed = $anchor ? floor((strtotime(date('Y-m-d H:i:s')) - strtotime($anchor)) / 86400) : 0;
-
-        $tiers = config('income.withdrawal_charge_tiers'); // e.g. [60=>0, 30=>5, 0=>10], ordered ascending? see below
-        krsort($tiers);
-
-        foreach($tiers as $threshold_days => $percent)
-        {
-            if($days_elapsed >= $threshold_days)
-            {
-                return $percent;
-            }
-        }
-
-        return 10;
+        return (float) config('income.withdrawal_fee_percent', 10);
     }
     
     // ========================================================================================================================================================================

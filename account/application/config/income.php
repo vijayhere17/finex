@@ -1,67 +1,22 @@
 <?php
 
-// Build 200-level ROI Override ladder from business plan ranges.
-$level_income_ladder = [
-    1 => 10,
-    2 => 5,
-    3 => 5,
-    4 => 4,
-    5 => 4,
-    6 => 3,
-    7 => 3,
-    8 => 2,
-    9 => 2,
-];
-
-for ($i = 10; $i <= 20; $i++) {
-    $level_income_ladder[$i] = 1;
-}
-for ($i = 21; $i <= 50; $i++) {
-    $level_income_ladder[$i] = 0.5;
-}
-for ($i = 51; $i <= 100; $i++) {
-    $level_income_ladder[$i] = 0.25;
-}
-for ($i = 101; $i <= 200; $i++) {
-    $level_income_ladder[$i] = 0.10;
-}
+/**
+ * Finex compensation plan configuration (new user panel).
+ * Old 200-level / booster / reward ladders replaced by Direct ROI + 12-level ROI share.
+ */
 
 return [
 
-    // Registration fee (USD) - recorded at signup; package activation remains unchanged.
-    'registration_fee' => 1,
+    // Registration is FREE.
+    'registration_fee' => 0,
 
-    // Company receiving wallet for Registration Fee + Topup (USDT BEP20 transfers)
     'deposit_wallet' => '0x5a0fc2285a37c1682dc3f351ca59a043b1a41050',
-
-    // USDT (BEP20) on BSC mainnet - 18 decimals
     'usdt_contract' => '0x55d398326f99059fF775485246999027B3197955',
 
-    // Direct Sponsor Income - % of investment amount, level => percent
-    'direct_sponsor_levels' => [
-        1 => 3,
-        2 => 2,
-        3 => 1,
-    ],
+    // Fixed sequential slots (Slot 1 .. Slot 12)
+    'slot_amounts' => [10, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120, 10240, 20480],
 
-    // Level Income ("ROI Override") - % of each daily ROI payout, up to 200 levels
-    'level_income_ladder' => $level_income_ladder,
-
-    // Max depth for ROI Override / Level Income
-    'level_income_max_depth' => 200,
-
-    // Active-direct qualification thresholds for ROI Override levels
-    // Levels 1-9 require equal active directs (handled in code as level number).
-    'level_income_direct_rules' => [
-        ['from' => 1,  'to' => 9,   'mode' => 'equal'],
-        ['from' => 10, 'to' => 20,  'directs' => 5],
-        ['from' => 21, 'to' => 50,  'directs' => 10],
-        ['from' => 51, 'to' => 100, 'directs' => 15],
-        ['from' => 101,'to' => 200, 'directs' => 20],
-    ],
-
-    // Direct ROI Income — daily % based on qualified active directs (1% each, max 12%).
-    // Used for display/storage now; future daily distribution module will credit from this %.
+    // Direct ROI % = min(qualified_active_directs * percent_per_direct, max_percent)
     'direct_roi' => [
         'percent_per_direct' => 1,
         'max_percent' => 12,
@@ -69,58 +24,86 @@ return [
         'registered_status' => 'registered',
     ],
 
-    // Booster Income - directs sponsored within 48hrs of own activation => extra daily ROI percent
-    'booster_tiers' => [
-        10 => 0.25,
-        7 => 0.20,
-        5 => 0.15,
-        3 => 0.10,
+    // Daily ROI on each active slot
+    'daily_roi' => [
+        'max_days' => 300,
+        'earning_type' => 2,
     ],
 
-    'booster_window_hours' => 48,
+    // Level Income on ROI — % of downline Daily ROI, unlock by active directs
+    // 1 direct → Level 1, …, 12 directs → Level 12
+    'level_roi' => [
+        'max_depth' => 12,
+        'earning_type' => 4,
+        'ladder' => [
+            1 => 12,
+            2 => 11,
+            3 => 10,
+            4 => 9,
+            5 => 8,
+            6 => 7,
+            7 => 6,
+            8 => 5,
+            9 => 4,
+            10 => 3,
+            11 => 2,
+            12 => 1,
+        ],
+    ],
 
-    // Booster Income (one-time) - sponsor this many directs of the same-or-higher package within
-    // booster_window_hours of own activation => 100% of own first topup credited once (earning_type 8)
-    'booster_required_directs' => 3,
+    // Legacy keys kept so old code paths that still reference them do not crash.
+    // New Daily/Level services use level_roi / direct_roi above.
+    'level_income_ladder' => [
+        1 => 12, 2 => 11, 3 => 10, 4 => 9, 5 => 8, 6 => 7,
+        7 => 6, 8 => 5, 9 => 4, 10 => 3, 11 => 2, 12 => 1,
+    ],
+    'level_income_max_depth' => 12,
+    'level_income_direct_rules' => [
+        ['from' => 1, 'to' => 12, 'mode' => 'equal'],
+    ],
 
-    // Reward qualification - top 3 sponsoring legs (not binary)
-    'reward_leg1_percent' => 40,
-    'reward_leg2_percent' => 30,
-    'reward_leg3_percent' => 30,
+    // Direct sponsor income on slot activation (still credited; 2nd/3rd may divert to auto-upgrade)
+    'direct_sponsor_levels' => [
+        1 => 3,
+        2 => 2,
+        3 => 1,
+    ],
 
-    // Locked Reward Bonus - allocated once on first package activation
-    'locked_reward_bonus' => 1000,
-    'locked_reward_validity_days' => 30,
-    'locked_reward_unlock_percent' => 10,
+    // Auto Slot Upgrade — accumulate income from 2nd & 3rd directs toward next slot
+    'auto_upgrade' => [
+        'source_direct_positions' => [2, 3], // 2nd and 3rd activated directs
+        'income_earning_type' => 11,         // Auto Upgrade Income to uplines
+        'upline_ladder' => [                 // % of upgraded slot amount
+            1 => 5,
+            2 => 3,
+            3 => 2,
+        ],
+    ],
 
-    // Earning cap multipliers
-    'working_cap_multiplier' => 3,
-    'non_working_cap_multiplier' => 2,
+    // Flat withdrawal fee (new plan)
+    'withdrawal_fee_percent' => 10,
 
-    // Withdrawal charge tiers (income withdrawals), days elapsed => charge percent
+    // Legacy withdrawal tiers (unused by new flat fee; kept for reference)
     'withdrawal_charge_tiers' => [
-        60 => 0,
-        30 => 5,
         0 => 10,
     ],
 
-    // Capital withdrawal
     'capital_withdrawal_charge_percent' => 30,
     'capital_withdrawal_window_months' => 8,
 
-    // Set to true to re-enable the legacy rank-based Salary cron (runSalaryAchiever/runSalaryEarning).
-    // Left in place, not deleted, per business decision to replace Salary with Reward Salary income.
+    // Disable legacy salary / reward crons in ProcessDaily
     'legacy_salary_enabled' => false,
+    'legacy_reward_cron_enabled' => false,
+    'legacy_booster_enabled' => false,
+    'legacy_locked_reward_enabled' => false,
 
-    // earning_type allocations used across the app (documentation only, not read programmatically)
+    // Cap multipliers (package earning limit = amount * cap)
+    'working_cap_multiplier' => 3,
+    'non_working_cap_multiplier' => 2,
+
+    // earning_type map
     // 1  = Direct Sponsor Income
     // 2  = Daily ROI
-    // 3  = Cashback
-    // 4  = Level Income (ROI Override)
-    // 5  = Legacy Salary (dormant) / Reward Salary alias in some menus
-    // 6  = DMC Leadership
-    // 7  = Reward Salary (weekly)
-    // 8  = Booster Income
-    // 9  = Life Time Reward
-    // 10 = Locked Reward Unlock
+    // 4  = Level ROI Income
+    // 11 = Auto Upgrade Income
 ];

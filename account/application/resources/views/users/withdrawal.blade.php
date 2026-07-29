@@ -98,6 +98,6 @@
 </div>
 @endsection
 @section('jscontent')
-<script> const admin_charge = 2; </script>
+<script> const admin_charge = 10; </script>
 <script src="{{ URL::to('/') }}/assets/js/users/withdrawal.0.12.js"></script>
 @endsection

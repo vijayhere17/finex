@@ -14,9 +14,11 @@ use App\Models\BinaryPoints;
 use App\Models\SalaryMaster;
 use App\Models\SalaryAchiever;
 use App\Models\EarningWallet;
+use App\Models\DailyRoiLog;
 use App\Models\TurnoverRewardMaster;
 use App\Models\TurnoverRewardAchiever;
 use App\Services\DirectRoiService;
+use App\Services\AutoUpgradeService;
 
 use DB;
 
@@ -26,113 +28,44 @@ class DashboardController extends Controller
     public function index()
     {
         $balanceCon = app('App\Http\Controllers\Users\EarningWalletController');
+        $user = Auth::user();
+        $userId = $user->id;
+        $page_titel = 'Dashboard';
 
-        $user_id = Auth::user()->id;
+        $directRoi = app(DirectRoiService::class)->getDisplayStats($user);
+        $progress = app(AutoUpgradeService::class)->resolveSlotProgress($user);
 
-        $page_titel = 'Dashboard';     
-        
+        if ((int) ($user->current_slot ?? -1) !== (int) $progress['current_slot']
+            || (int) ($user->next_slot ?? -1) !== (int) $progress['next_slot']) {
+            $user->current_slot = $progress['current_slot'];
+            $user->next_slot = $progress['next_slot'];
+            $user->save();
+        }
+
+        $amounts = config('income.slot_amounts', []);
+        $nextAmount = ($progress['next_slot'] > 0) ? ($amounts[$progress['next_slot'] - 1] ?? 0) : 0;
+
+        $fx = (object) [
+            'current_slot' => $progress['current_slot'],
+            'next_slot' => $progress['next_slot'],
+            'next_slot_amount' => $nextAmount,
+            'activation_status' => $user->activation_status ?? 'registered',
+            'qualified_active_directs' => $directRoi['qualified_active_directs'],
+            'direct_roi_percent' => $directRoi['direct_roi_percent'],
+            'today_roi' => (float) DailyRoiLog::where('member_id', $userId)->whereDate('roi_date', today())->sum('amount'),
+            'total_roi' => (float) $balanceCon->getearningsum($userId, 2),
+            'level_roi' => (float) $balanceCon->getearningsum($userId, 4),
+            'auto_upgrade_balance' => (float) ($user->auto_upgrade_balance ?? 0),
+            'available_wallet' => (float) $balanceCon->getearningbalance($userId),
+            'total_withdrawn' => (float) WithdrawalLog::where('member_id', $userId)->where('status', 2)->sum('payable'),
+        ];
+
         $object = new Dashboarddata;
-
-        $referral = User::where('referral_id','=',$user_id)->get();
-
-      	$object->total_referral = $referral->count();
-      	$object->total_a_referral = $referral->where('kit_id', '>' ,0)->count();
-		$object->total_ia_referral = $referral->where('kit_id', '<=' ,0)->count();
-
-        // Direct ROI Income — calculate & store % (display only; no wallet credit).
-        $directRoi = app(DirectRoiService::class)->getDisplayStats(Auth::user());
         $object->qualified_active_directs = $directRoi['qualified_active_directs'];
         $object->direct_roi_percent = $directRoi['direct_roi_percent'];
+        $object->total_a_referral = $directRoi['qualified_active_directs'];
 
-        $object->total_team = LevelReferral::where('member_id','=',$user_id)->sum('team_count');
-		$object->total_a_team = self::getDownlineTeam($user_id, 1);
-		$object->total_ia_team = self::getDownlineTeam($user_id, 0);
-		
-		$object->total_r_investment = self::getTeamBusiness($user_id, 1, 0);
-		$object->total_tr_investment = self::getTeamBusiness($user_id, 1, 1);
-		$object->total_wr_investment = self::getTeamBusiness($user_id, 1, 2);
-		$object->total_t_investment = Auth::user()->team_investment; // self::getTeamBusiness($user_id, 0);
-		
-		$object->total_self_investment = UserStaked::where('member_id', '=', $user_id)->sum('payable_coin');
-		$object->list_self_investment = UserStaked::where('member_id', '=', $user_id)->with('kit')->orderBy('id', 'desc')->get();
-	    
-	    $object->total_flush = formatdecimal(($balanceCon->getearningflush($user_id, 1)),4);
-		$object->total_earning = formatdecimal(($balanceCon->getcraditdebitsum($user_id, 1)),4);
-        $object->total_debit = formatdecimal(($balanceCon->getcraditdebitsum($user_id, 2)),4);
-        $object->total_balance = formatdecimal(($balanceCon->getearningbalance($user_id)),4);
-        
-        $object->total_pw_balance = formatdecimal(($balanceCon->getpwbalance($user_id)),4);
-        $object->total_pwc_balance = formatdecimal(($balanceCon->getcraditdebitsumpw($user_id, 1)),4);
-        $object->total_pwd_balance = formatdecimal(($balanceCon->getcraditdebitsumpw($user_id, 2)),4);
-        
-        $object->total_referral_bonus = formatdecimal($balanceCon->getearningsum($user_id, 1), 4);
-        $object->total_daily_roi_bonus = formatdecimal($balanceCon->getearningsum($user_id, 2), 4);
-        $object->total_cashback_bonus = formatdecimal($balanceCon->getearningsum($user_id, 3), 4);
-        $object->total_daily_level_bonus = formatdecimal($balanceCon->getearningsum($user_id, 3), 4);
-        $object->total_team_level_bonus = formatdecimal($balanceCon->getearningsum($user_id, 4), 4);
-        $object->total_salary_bonus = formatdecimal($balanceCon->getearningsum($user_id, 5), 4);
-        $object->total_dmc_bonus = formatdecimal($balanceCon->getearningsum($user_id, 6), 4);
-        $object->total_reward_salary = formatdecimal($balanceCon->getearningsum($user_id, 7), 4);
-        $object->total_turnover_bonus = formatdecimal($balanceCon->getearningsum($user_id, 7), 4);
-        $object->total_booster_bonus = formatdecimal($balanceCon->getearningsum($user_id, 8), 4);
-        $object->total_lifetime_bonus = formatdecimal($balanceCon->getearningsum($user_id, 9), 4);
-        $object->total_locked_unlock_bonus = formatdecimal($balanceCon->getearningsum($user_id, 10), 4);
-
-        $object->total_income_today = formatdecimal(EarningWallet::where('member_id', $user_id)->where('txn_type', 1)->whereDate('created_at', today())->sum('amount'), 4);
-        $object->recent_earning = EarningWallet::where('member_id', $user_id)->where('txn_type', 1)->orderBy('created_at', 'desc')->take(5)->get();
-
-        $object->recent_staking = StakeRequest::orderBy('created_at','desc')->where('stake_coin', '>', 0)->take(5)->get();
-        
-        $object->total_withdrawal = formatdecimal(WithdrawalLog::where('member_id','=',$user_id)->where('status','=',2)->sum('payable'), 8);
-        
-        $object->total_3x_remain = $this->remin3xEarning($user_id);
-        $object->total_2x_remain = $this->remin2xEarning($user_id);
-        $object->total_80x_remain = $this->get80XLimitWarning($user_id);
-        
-        $object->total_max_earning = $this->maxEarning($user_id, 3);
-        
-        $object->current_rank = SalaryMaster::find(Auth::user()->salary_id);
-        $object->achieve_rank = SalaryAchiever::where('member_id','=',$user_id)->where('salary_id','=',Auth::user()->salary_id)->first();
-
-        // Locked Reward Bonus summary
-        $user = Auth::user();
-        $object->locked_reward_bonus = formatdecimal((float) ($user->locked_reward_bonus ?? 0), 4);
-        $object->unlocked_reward_bonus = formatdecimal((float) ($user->unlocked_reward_bonus ?? 0), 4);
-        $object->expired_reward_bonus = formatdecimal((float) ($user->expired_reward_bonus ?? 0), 4);
-        $object->locked_reward_lock_date = $user->locked_reward_lock_date;
-        $object->locked_reward_expiry_date = $user->locked_reward_expiry_date;
-        $object->locked_reward_remaining_days = 0;
-        if(!empty($user->locked_reward_expiry_date))
-        {
-            $object->locked_reward_remaining_days = max(0, (int) ceil((strtotime($user->locked_reward_expiry_date) - time()) / 86400));
-        }
-        $object->locked_reward_target = (float) config('income.locked_reward_bonus', 1000);
-
-        // Reward progress / achievement / weekly salary
-        $rewardCon = app('App\Http\Controllers\Users\TurnoverRewardController');
-        $object->reward_progress = $rewardCon->getRewardProgress($user_id);
-        $object->allrewards = TurnoverRewardMaster::where('milestone_order', '<=', 7)->orderBy('milestone_order', 'asc')->get();
-        $object->reward_achievements = TurnoverRewardAchiever::where('member_id', '=', $user_id)->with('reward')->orderBy('id', 'asc')->get();
-        $object->active_reward = $object->reward_achievements->where('status', 0)->sortByDesc('id')->first();
-        $object->weekly_salary = $object->active_reward ? (float) $object->active_reward->weekly_salary : 0;
-        
-        //
-        
-        $allsalary = SalaryMaster::get();
-        $object->allsalary = $allsalary;
-        
-        // Top 3 sponsoring legs 40/30/30 (reuse reward leg calculator)
-        $legs = $rewardCon->getLegBusiness($user_id);
-        $object->leg_data = [
-            'leg_1_username' => $legs['leg1_username'],
-            'leg_2_username' => $legs['leg2_username'],
-            'leg_3_username' => $legs['leg3_username'],
-            'leg_1_business' => $legs['leg1_business'],
-            'leg_2_business' => $legs['leg2_business'],
-            'leg_3_business' => $legs['leg3_business'],
-        ];
-        
-        return view('users.dashboard', compact('page_titel', 'object'));
+        return view('users.dashboard', compact('page_titel', 'fx', 'object'));
     }
     
     public function getDownlineTeam($user_id, $is_active)
@@ -399,18 +332,8 @@ class DashboardController extends Controller
 	}
 }
 
-class Dashboarddata{
-	public $total_referral;
-	public $total_a_referral;
-	public $total_team;
-	public $total_a_team;
-    public $total_stake;
-	public $total_stake_bmyt;
-    public $total_r_investment;
-    public $total_t_investment;
-	public $total_earning;
-    public $total_debit;
-    public $total_balance;
-    public $recent_staking;
-    public $total_withdrawal;
+
+class Dashboarddata
+{
+    //
 }
