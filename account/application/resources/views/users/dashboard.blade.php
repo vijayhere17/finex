@@ -32,33 +32,16 @@
         color: var(--gt-heading, #f6efdd);
         margin: 0;
     }
-    .fx-stat-card .fx-value.text-gold { color: #1e6fd9; }
+    .fx-stat-card .fx-value.text-gold { color: #f8ce4e; }
     .fx-hero {
-        background: linear-gradient(120deg, #0b3d91 0%, #1e6fd9 48%, #3ba4f0 100%);
+        background: linear-gradient(120deg, #a5731c, #e6ad1f 55%, #f8ce4e);
         border-radius: 14px;
-        padding: 1.35rem 1.5rem;
-        color: #ffffff;
+        padding: 1.25rem 1.5rem;
+        color: #0d0b07;
         margin-bottom: 1.25rem;
-        box-shadow: 0 12px 30px rgba(11, 61, 145, 0.22);
     }
-    .fx-hero-brand {
-        font-size: 0.78rem;
-        font-weight: 800;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        opacity: 0.9;
-        margin-bottom: 0.35rem;
-    }
-    .fx-hero h2 { margin: 0; font-weight: 800; color: #ffffff; letter-spacing: 0.02em; }
-    .fx-hero p { margin: 0.45rem 0 0; opacity: 0.92; font-weight: 500; max-width: 640px; }
-    .fx-hero-meta {
-        margin-top: 0.85rem;
-        display: flex;
-        gap: 1rem;
-        align-items: center;
-        font-weight: 700;
-    }
-    .fx-hero-meta a { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+    .fx-hero h2 { margin: 0; font-weight: 800; color: #0d0b07; }
+    .fx-hero p { margin: 0.35rem 0 0; opacity: 0.85; font-weight: 500; }
 
     .fx-profile-card, .fx-referral-card {
         border-radius: 14px;
@@ -71,8 +54,8 @@
         height: 64px;
         border-radius: 50%;
         object-fit: cover;
-        border: 2px solid rgba(30, 111, 217, 0.45);
-        box-shadow: 0 0 18px rgba(30, 111, 217, 0.18);
+        border: 2px solid rgba(230, 173, 31, 0.55);
+        box-shadow: 0 0 18px rgba(230, 173, 31, 0.25);
     }
     .fx-copy-row {
         display: flex;
@@ -96,9 +79,9 @@
     }
     .fx-copy-btn {
         flex-shrink: 0;
-        border: 1px solid rgba(30, 111, 217, 0.35);
-        background: rgba(30, 111, 217, 0.08);
-        color: #1e6fd9;
+        border: 1px solid rgba(230, 173, 31, 0.45);
+        background: rgba(230, 173, 31, 0.12);
+        color: #f8ce4e;
         border-radius: 8px;
         padding: 0.3rem 0.65rem;
         font-size: 0.78rem;
@@ -106,8 +89,8 @@
         cursor: pointer;
     }
     .fx-copy-btn:hover {
-        background: rgba(30, 111, 217, 0.16);
-        color: #0b3d91;
+        background: rgba(230, 173, 31, 0.22);
+        color: #fff;
     }
     .fx-card-title {
         font-size: 0.95rem;
@@ -126,13 +109,8 @@
 <div class="pc-container">
     <div class="pc-content">
         <div class="fx-hero">
-            <div class="fx-hero-brand">Finex</div>
-            <h2>Trade Smart Confident</h2>
-            <p>Join Finex and access powerful trading tools, expert market insights, and a secure platform designed to help you trade with confidence.</p>
-            <div class="fx-hero-meta">
-                <span>2026</span>
-                <a href="https://www.finex.world" target="_blank" rel="noopener">www.finex.world</a>
-            </div>
+            <h2>Welcome, {{ $user->firstname ?: 'Trader' }}</h2>
+            <p>Finex Slot Plan — activate slots, grow directs, earn Daily ROI up to 12%.</p>
         </div>
 
         {{-- Profile + Referral --}}

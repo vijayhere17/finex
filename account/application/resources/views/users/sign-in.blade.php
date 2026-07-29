@@ -9,7 +9,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     
     <!-- [Favicon] icon -->
-    <link rel="icon" type="image/svg+xml" href="{{ URL::to('/') }}/assets/images/finex-mark.svg"> <!-- [Font] Family -->
+    <link rel="icon" type="image/png" href="{{ URL::to('/') }}/assets/images/logo-lg.png"> <!-- [Font] Family -->
     <link rel="stylesheet" href="{{ URL::to('/') }}/assets/fonts/inter/inter.css" id="main-font-link" />
 
     <!-- [Tabler Icons] https://tablericons.com -->
@@ -32,7 +32,7 @@
 
     <link rel="stylesheet" href="{{ URL::to('/') }}/assets/css/bg-animation.css" >
 
-    <link rel="stylesheet" href="{{ URL::to('/') }}/assets/css/finex-theme.css" >
+    <link rel="stylesheet" href="{{ URL::to('/') }}/assets/css/gold-theme.css" >
 
     <style>
         .toggle-password {
@@ -40,6 +40,27 @@
             cursor: pointer;
             margin-right: 20px;
             margin-top: -33px;
+        }
+        .fx-brand {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none !important;
+            line-height: 1.05;
+        }
+        .fx-brand-name {
+            font-weight: 800;
+            font-size: 2rem;
+            letter-spacing: 0.02em;
+            color: var(--gt-gold-1, #f8ce4e);
+        }
+        .fx-brand-tag {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--gt-gold-2, #e6ad1f);
+            margin-top: 2px;
         }
     </style>
 </head>
@@ -70,9 +91,6 @@
                     <div class="card-body">
                         <div class="text-center">
                            <x-logo />
-                           <div class="fx-brand-sub">Join Finex and access powerful trading tools, expert market insights, and a secure platform designed to help you trade with confidence.</div>
-                           <div class="fx-brand-year">2026</div>
-                           <div class="fx-brand-web">www.finex.world</div>
                         </div>
 
                         <div class="saprator my-3">
