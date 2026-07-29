@@ -87,7 +87,7 @@
         font-size: 1.5rem;
         font-weight: 800;
         margin-bottom: 0.75rem;
-        color: var(--gt-gold-1, #f8ce4e);
+        color: var(--gt-gold-2, #1e6fd9);
     }
     .slot-badge {
         display: inline-block;
