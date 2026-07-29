@@ -19,7 +19,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     
     <!-- [Favicon] icon -->
-    <link rel="icon" type="image/png" href="{{ URL::to('/') }}/assets/images/logo-lg.png"> <!-- [Font] Family -->
+    <link rel="icon" type="image/png" href="{{ URL::to('/') }}/assets/images/brand-logonew.png"> <!-- [Font] Family -->
     <link rel="stylesheet" href="{{ URL::to('/') }}/assets/fonts/inter/inter.css" id="main-font-link" />
 
     <!-- [Tabler Icons] https://tablericons.com -->
@@ -158,9 +158,10 @@
 
                         <h4 class="text-center f-w-500 mb-3">Create new account</h4>
 
-                        <div class="alert alert-info text-center py-2 mb-3">
-                            Registration Fee: <strong>${{ number_format((float)($registration_fee ?? 1), 2) }} USDT (BEP20)</strong>
-                        </div>
+                        <div class="alert alert-success text-center py-2 mb-3">
+    <strong>🎉 Registration is FREE!</strong><br>
+    Activate your first <strong>Slot</strong> after registration to start earning.
+</div>
 
                         <div class="row">
                             <div class="col-sm-12">
@@ -197,7 +198,9 @@
 
                         <div class="d-grid mt-4">
                             <button type="button" class="btn btn-info btn-connect">Connect Wallet</button>
-                            <button type="button" class="btn btn-primary btn-submit" style="display: none;">Pay ${{ number_format((float)($registration_fee ?? 1), 2) }} &amp; Sign Up</button>
+                            <button type="button" class="btn btn-primary btn-submit" style="display: none;">
+    Create Free Account
+</button>
                         </div>
 
                         <div class="d-flex justify-content-between align-items-end mt-4">
@@ -212,7 +215,7 @@
     <div class='message'>
         <div class='check'>&#10004;</div>
         <p>Success</p>
-        <p>Dear user, <br> You have successfully signed up with <b>Global Trade</b>. Login your account and explore your future!</p>
+        <p>Dear user, <br> You have successfully signed up with <b>GINANCE</b>. Login your account and explore your future!</p>
         <button id='ok'>OK</button>
     </div>
 
@@ -239,10 +242,10 @@
             to_address: @json($to_address ?? config('income.deposit_wallet')),
             usdt_con_addr: @json($usdt_con_addr ?? config('income.usdt_contract')),
             usdt_con_abi: @json($usdt_con_abi ?? '[]'),
-            registration_fee: {{ (float)($registration_fee ?? config('income.registration_fee', 1)) }}
+            registration_fee: 0
         };
     </script>
-    <script src="{{ URL::to('/') }}/assets/js/users/sign-up.0.8.js?v=1"></script>
+    <script src="{{ URL::to('/') }}/assets/js/users/sign-up.0.8.js?v=3"></script>
 
     <script>
         $("#sponsor_id").val("<?php echo $refer; ?>").change();

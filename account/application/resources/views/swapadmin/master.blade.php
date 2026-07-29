@@ -50,7 +50,7 @@
 					<!-- logo -->
 					<div class="logo">
 						<a href="{{URL::to('/')}}/swapadmin/home">
-						    <img src="{{ URL::asset('assets/images/logo-light.png') }}" alt="" style="height: 40px;"/>
+						    <img src="{{ URL::asset('assets/images/brand-logonew.png') }}" alt="" style="height: 40px;"/>
 						</a>
 					</div>
 					<!-- logo collapse icon -->

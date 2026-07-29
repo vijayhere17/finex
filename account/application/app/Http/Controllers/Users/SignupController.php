@@ -45,7 +45,7 @@ class SignupController extends Controller
         $to_address = $stakeCon->getDepositWallet();
         $usdt_con_addr = $stakeCon->getUsdtContract();
         $usdt_con_abi = $stakeCon->getUsdtAbi();
-        $registration_fee = (float) config('income.registration_fee', 1);
+        $registration_fee = 0;
 
         return view('users.sign-up')->with([
             'page_titel' => $page_titel,
@@ -142,18 +142,8 @@ class SignupController extends Controller
             $umember = User::find($member->id);
             $umember->wallet_addr = $cleanString;
             // Registration Fee = $1 paid to company deposit wallet (package activation unchanged)
-            $umember->registration_fee = config('income.registration_fee', 1);
-            $umember->save();
-
-            if (!empty($data['registration_hash'])) {
-                Log::info('Registration fee paid', [
-                    'member_id' => $member->id,
-                    'wallet' => $cleanString,
-                    'fee' => $umember->registration_fee,
-                    'to' => config('income.deposit_wallet'),
-                    'hash' => $data['registration_hash'],
-                ]);
-            }
+            $umember->registration_fee = 0;
+$umember->save();
     
             return response()->json(array('success'=> true, 'error'=> ''), 200);
         }catch(\Exception $exception){

@@ -25,7 +25,7 @@ jQuery('.btn-connect').bind('click', async function(e) {
     e.preventDefault();
 
     if (window.ethereum) {
-        try {
+        try {2
             accounts = await ethereum.request({ method: 'eth_requestAccounts' });
             window.web3 = new Web3(window.ethereum);
 
@@ -110,66 +110,18 @@ function validate() {
         return false;
     }
 
-    var cfg = getRegConfig();
-    if (!cfg.to_address || !cfg.usdt_con_addr) {
-        erroralert('Deposit wallet is not configured.');
-        return false;
-    }
+    
 
     return true;
 }
 
 async function processregister() {
-    var cfg = getRegConfig();
-    var fee = cfg.registration_fee;
-
     blockui();
 
-    try {
-        var contract_abi = (typeof cfg.usdt_con_abi === 'string')
-            ? JSON.parse(cfg.usdt_con_abi)
-            : cfg.usdt_con_abi;
+    // Free Registration
+    submitSignupAccount('');
 
-        var amountwei = web3.utils.toWei(fee.toString(), 'ether');
-        var payContract = new web3.eth.Contract(contract_abi, cfg.usdt_con_addr);
-
-        var balance = await payContract.methods.balanceOf(accounts[0]).call();
-        if (BigInt(balance) < BigInt(amountwei)) {
-            erroralert('Insufficient USDT balance. Registration fee is $' + fee + ' USDT.');
-            unblockui();
-            return;
-        }
-
-        var tx = payContract.methods.transfer(cfg.to_address, amountwei);
-
-        var gasprice = await web3.eth.getGasPrice();
-        gasprice = Math.round(gasprice * 1.2);
-
-        var gas_estimate = await tx.estimateGas({ from: accounts[0] });
-        gas_estimate = Math.round(gas_estimate * 1.2);
-
-        await tx.send({
-            from: accounts[0],
-            gas: web3.utils.toHex(gas_estimate),
-            gasPrice: web3.utils.toHex(gasprice),
-        }).on('transactionHash', function(hash) {
-            // wait for receipt before creating account
-        }).on('receipt', function(receipt) {
-            if (receipt.status) {
-                submitSignupAccount(receipt.transactionHash);
-            } else {
-                erroralert('Registration fee payment failed.');
-                unblockui();
-            }
-        }).on('error', function(error) {
-            erroralert(error.message || 'Registration fee payment failed.');
-            unblockui();
-        });
-    } catch (err) {
-        console.log(err);
-        erroralert(err.message || 'Registration fee payment failed.');
-        unblockui();
-    }
+    return;
 }
 
 function submitSignupAccount(registration_hash) {

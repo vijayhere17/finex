@@ -5,7 +5,7 @@
    ========================================================================== */
 
 :root {
-  /* ---- Global Trade palette (sampled from assets/images/logo-lg.png) ---- */
+  /* ---- Global Trade palette (sampled from assets/images/brand-logo.png) ---- */
   --gt-bg: #0d0b07;
   --gt-bg-elevated: #16130c;
   --gt-card-bg: #1a1610;
@@ -413,7 +413,7 @@ h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6 {
 }
 
 /* ==========================================================================
-   Brand logo component (assets/images/logo-lg.png)
+   Brand logo component (assets/images/brand-logo.png)
    ========================================================================== */
 .gt-logo {
   color: var(--gt-gold-2);

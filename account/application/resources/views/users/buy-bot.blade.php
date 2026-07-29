@@ -68,11 +68,7 @@
                             <strong>USDT (BEP20) Live Rate : </strong>$<span>{{ $coin_rate }}</span>
                         </div>
                         
-                        <div class="col-md-12">
-                            <x-input type="text" name="topup_amount" id="topup_amount" placeholder="Topup Amount ($)" value="" />
-                        </div>
                         
-                        <div id="amount_error" class="text-danger mb-2" style="display: none; font-weight: 600;"></div>
 
                         <ul class="list-group list-group-flush product-check-list">
                             <li class="list-group-item enable">
@@ -97,7 +93,7 @@ $
 </span>
 </li>
                             <li class="list-group-item enable">Daily Income : $<span id="txt_daily_income">0.00</span></li>
-                            <li class="list-group-item">Note : Enter a stake amount only $50 multiple</li>
+                            
                         </ul>
 
                         <br>

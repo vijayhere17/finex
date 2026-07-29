@@ -43,7 +43,7 @@
 					<!-- logo -->
 					<div class="logo">
 						<a href="{{URL::to('/')}}/admin/home">
-						    <img src="{{ URL::asset('/ginance-new/assets/images/logo22.png') }}" alt="" style="height: 80px;"/>
+						    <img src="{{ URL::asset('assets/images/logo-lg.png') }}" alt="" style="height: 80px;"/>
 						</a>
 					</div>
 					<!-- logo collapse icon -->

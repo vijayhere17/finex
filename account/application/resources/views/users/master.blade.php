@@ -11,8 +11,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     
     <!-- [Favicon] icon -->
-    <link rel="icon" type="image/png" href="{{ URL::to('/') }}/assets/images/logo-lg.png">
-
+    <link rel="icon" type="image/png" href="http://localhost/ginance-new/assets/images/logo22.png">
      <!-- [Font] Family -->
     <link rel="stylesheet" href="{{ URL::to('/') }}/assets/fonts/inter/inter.css" id="main-font-link" />
 
@@ -92,9 +91,12 @@
         <div class="navbar-wrapper">
             <div class="m-header">
                 <div class="b-brand text-primary">
-                    <a href="{{ URL::to('/') }}/" class="gt-logo d-inline-flex align-items-center text-decoration-none">
-                        <img src="{{ URL::to('/') }}/assets/images/glh.png" alt="Global Trade" class="gt-logo-img" style="height: 35px;"/>
-                    </a>
+                   <a href="http://localhost/ginance-new/" class="gt-logo d-inline-flex align-items-center text-decoration-none">
+    <img src="http://localhost/ginance-new/assets/images/logo22.png"
+         alt="GINANCE"
+         class="gt-logo-img"
+         style="height:48px; width:auto;" />
+</a>
                 </div>
             </div>
             
@@ -421,7 +423,7 @@
         <div class="footer-wrapper container-fluid">
             <div class="row">
                 <div class="col my-1">
-                    <p class="m-0">Copyright &#169; {{ date("Y") }} Global Trade. All Rights Reserved</p>
+                    <p class="m-0">Copyright &#169; {{ date("Y") }} GINANCE. All Rights Reserved</p>
                 </div>
             </div>
         </div>

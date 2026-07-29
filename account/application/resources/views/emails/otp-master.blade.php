@@ -25,7 +25,7 @@
                     <tr>
                         <td style="text-align:center;">
                           <a href="{{ URL::to('/') }}" title="logo" target="_blank">
-                            <img width="150" src="{{ URL::to('/') }}/assets/images/logo-lg.png" alt="Global Trade" style="background-color:#0d0b07; border-radius:16px; padding:18px;">
+                            <img width="150" src="{{ URL::to('/') }}/assets/images/brand-logonew.png" alt="GINANCE" style="background-color:#0d0b07; border-radius:16px; padding:18px;">
                           </a>
                         </td>
                     </tr>
