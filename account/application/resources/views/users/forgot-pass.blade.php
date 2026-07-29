@@ -9,7 +9,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     
     <!-- [Favicon] icon -->
-    <link rel="icon" type="image/png" href="{{ URL::to('/') }}/assets/images/brand-logonew.png"> <!-- [Font] Family -->
+    <link rel="icon" type="image/svg+xml" href="{{ URL::to('/') }}/assets/images/finex-mark.svg"> <!-- [Font] Family -->
     <link rel="stylesheet" href="{{ URL::to('/') }}/assets/fonts/inter/inter.css" id="main-font-link" />
 
     <!-- [Tabler Icons] https://tablericons.com -->
@@ -32,7 +32,7 @@
 
     <link rel="stylesheet" href="{{ URL::to('/') }}/assets/css/bg-animation.css" >
 
-    <link rel="stylesheet" href="{{ URL::to('/') }}/assets/css/gold-theme.css" >
+    <link rel="stylesheet" href="{{ URL::to('/') }}/assets/css/finex-theme.css" >
 
     <style>
         #particles-js {
@@ -83,7 +83,7 @@
                         </div>
 
                         <div class="saprator my-3">
-                            <span>{{ env('APP_NAME') }}</span>
+                            <span>Finex</span>
                         </div>
 
                         <h4 class="text-center f-w-500 mb-3">Forgot Your Account password</h4>

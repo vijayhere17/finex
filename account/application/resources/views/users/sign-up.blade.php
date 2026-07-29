@@ -19,7 +19,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     
     <!-- [Favicon] icon -->
-    <link rel="icon" type="image/png" href="{{ URL::to('/') }}/assets/images/brand-logonew.png"> <!-- [Font] Family -->
+    <link rel="icon" type="image/svg+xml" href="{{ URL::to('/') }}/assets/images/finex-mark.svg"> <!-- [Font] Family -->
     <link rel="stylesheet" href="{{ URL::to('/') }}/assets/fonts/inter/inter.css" id="main-font-link" />
 
     <!-- [Tabler Icons] https://tablericons.com -->
@@ -44,7 +44,7 @@
 
     <link rel="stylesheet" href="{{ URL::to('/') }}/assets/common/css/unicons.css">
 
-    <link rel="stylesheet" href="{{ URL::to('/') }}/assets/css/gold-theme.css" >
+    <link rel="stylesheet" href="{{ URL::to('/') }}/assets/css/finex-theme.css" >
 
     <style>
         .toggle-password {
@@ -150,10 +150,13 @@
                     <div class="card-body">
                         <div class="text-center">
                            <x-logo />
+                           <div class="fx-brand-sub">Join Finex and access powerful trading tools, expert market insights, and a secure platform designed to help you trade with confidence.</div>
+                           <div class="fx-brand-year">2026</div>
+                           <div class="fx-brand-web">www.finex.world</div>
                         </div>
 
                         <div class="saprator my-3">
-                            <span>{{ env('APP_NAME') }}</span>
+                            <span>Finex</span>
                         </div>
 
                         <h4 class="text-center f-w-500 mb-3">Create new account</h4>
@@ -215,7 +218,7 @@
     <div class='message'>
         <div class='check'>&#10004;</div>
         <p>Success</p>
-        <p>Dear user, <br> You have successfully signed up with <b>GINANCE</b>. Login your account and explore your future!</p>
+        <p>Dear user, <br> You have successfully signed up with <b>Finex</b>. Login your account and explore your future!</p>
         <button id='ok'>OK</button>
     </div>
 

@@ -11,7 +11,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     
     <!-- [Favicon] icon -->
-    <link rel="icon" type="image/png" href="http://localhost/ginance-new/assets/images/logo22.png">
+    <link rel="icon" type="image/svg+xml" href="{{ URL::to('/') }}/assets/images/finex-mark.svg">
      <!-- [Font] Family -->
     <link rel="stylesheet" href="{{ URL::to('/') }}/assets/fonts/inter/inter.css" id="main-font-link" />
 
@@ -38,7 +38,7 @@
 
     <link rel="stylesheet" href="{{ URL::to('/') }}/assets/css/bg-animation.css" >
 
-    <link rel="stylesheet" href="{{ URL::to('/') }}/assets/css/gold-theme.css" >
+    <link rel="stylesheet" href="{{ URL::to('/') }}/assets/css/finex-theme.css" >
 
     <style>
         .pc-header .pc-head-link .pc-h-badge {
@@ -91,12 +91,10 @@
         <div class="navbar-wrapper">
             <div class="m-header">
                 <div class="b-brand text-primary">
-                   <a href="http://localhost/ginance-new/" class="gt-logo d-inline-flex align-items-center text-decoration-none">
-    <img src="http://localhost/ginance-new/assets/images/logo22.png"
-         alt="GINANCE"
-         class="gt-logo-img"
-         style="height:48px; width:auto;" />
-</a>
+                   <a href="{{ URL::to('/') }}/dashboard" class="fx-brand">
+                        <span class="fx-brand-name">Finex</span>
+                        <span class="fx-brand-tag">Trade Smart Confident</span>
+                   </a>
                 </div>
             </div>
             
@@ -373,7 +371,7 @@
         <div class="footer-wrapper container-fluid">
             <div class="row">
                 <div class="col my-1">
-                    <p class="m-0">Copyright &#169; {{ date("Y") }} GINANCE. All Rights Reserved</p>
+                    <p class="m-0">Copyright &#169; {{ date("Y") }} Finex. All Rights Reserved · <a href="https://www.finex.world" target="_blank" rel="noopener">www.finex.world</a></p>
                 </div>
             </div>
         </div>
