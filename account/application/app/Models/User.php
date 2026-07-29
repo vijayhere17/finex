@@ -23,6 +23,9 @@ class User extends Authenticatable
         'referral_id',
         'referral_uplines',
         'registration_fee',
+        'activation_status',
+        'qualified_active_directs',
+        'direct_roi_percent',
     ];
 
     protected $hidden = [
@@ -32,6 +35,8 @@ class User extends Authenticatable
 
     protected $casts = [
         'password' => 'hashed',
+        'qualified_active_directs' => 'integer',
+        'direct_roi_percent' => 'float',
     ];
 
     // ---------------------------------------------------------------------------------------

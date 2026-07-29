@@ -16,6 +16,7 @@ use App\Models\SalaryAchiever;
 use App\Models\EarningWallet;
 use App\Models\TurnoverRewardMaster;
 use App\Models\TurnoverRewardAchiever;
+use App\Services\DirectRoiService;
 
 use DB;
 
@@ -37,6 +38,11 @@ class DashboardController extends Controller
       	$object->total_referral = $referral->count();
       	$object->total_a_referral = $referral->where('kit_id', '>' ,0)->count();
 		$object->total_ia_referral = $referral->where('kit_id', '<=' ,0)->count();
+
+        // Direct ROI Income — calculate & store % (display only; no wallet credit).
+        $directRoi = app(DirectRoiService::class)->getDisplayStats(Auth::user());
+        $object->qualified_active_directs = $directRoi['qualified_active_directs'];
+        $object->direct_roi_percent = $directRoi['direct_roi_percent'];
 
         $object->total_team = LevelReferral::where('member_id','=',$user_id)->sum('team_count');
 		$object->total_a_team = self::getDownlineTeam($user_id, 1);

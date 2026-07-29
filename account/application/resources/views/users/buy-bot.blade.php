@@ -4,7 +4,7 @@
     $displayCurrentSlot = ($current_slot > 0) ? 'Slot '.$current_slot : 'Not Activated';
     $displayNextSlot = ($next_slot > 0) ? 'Slot '.$next_slot : 'All Slots Activated';
     $displayNextAmount = ($next_slot_amount > 0) ? '$'.number_format($next_slot_amount, 0) : '—';
-    $monthlyRoiDisplay = $currentMonthlyROI ? number_format($currentMonthlyROI->daily_roi, 2).'%' : '0%';
+    $displayActivationStatus = ucfirst($activation_status ?? 'registered');
 @endphp
 @extends('users.master')
 @section('extra')
@@ -297,11 +297,15 @@
                             </li>
                             <li class="list-group-item enable d-flex justify-content-between">
                                 <span>Activation Status</span>
-                                <span class="fw-bold" id="txt_activation_status">{{ $activation_status }}</span>
+                                <span class="fw-bold" id="txt_activation_status">{{ $displayActivationStatus }}</span>
                             </li>
                             <li class="list-group-item enable d-flex justify-content-between">
-                                <span>Current Monthly ROI</span>
-                                <span class="fw-bold text-success" id="txt_apy">{{ $monthlyRoiDisplay }}</span>
+                                <span>Qualified Active Directs</span>
+                                <span class="fw-bold text-info" id="txt_qualified_directs">{{ (int) $qualified_active_directs }}</span>
+                            </li>
+                            <li class="list-group-item enable d-flex justify-content-between">
+                                <span>Current Daily ROI %</span>
+                                <span class="fw-bold text-success" id="txt_apy">{{ number_format((float) $direct_roi_percent, 0) }}%</span>
                             </li>
                             <li class="list-group-item enable d-flex justify-content-between">
                                 <span>Estimated Maximum Return</span>
@@ -348,15 +352,17 @@
 @section('jscontent')
 
 <script>
-window.monthlyROI = {{ $currentMonthlyROI ? $currentMonthlyROI->daily_roi : 0 }};
+window.directRoiPercent = {{ (float) $direct_roi_percent }};
 window.slotMeta = {
     current_slot: {{ (int) $current_slot }},
     next_slot: {{ (int) $next_slot }},
     next_slot_amount: {{ (float) $next_slot_amount }},
-    activation_status: @json($activation_status)
+    activation_status: @json($activation_status),
+    qualified_active_directs: {{ (int) $qualified_active_directs }},
+    direct_roi_percent: {{ (float) $direct_roi_percent }}
 };
 </script>
-<script src="{{ URL::to('/') }}/assets/js/users/buy-bot.0.16.js?v=1"></script>
+<script src="{{ URL::to('/') }}/assets/js/users/buy-bot.0.16.js?v=2"></script>
 <script>
     connectwallet();
 

@@ -428,6 +428,37 @@
                     </div>
                 </div>
             </div>
+
+            {{-- Direct ROI Income (percentage only — no credit yet) --}}
+            <div class="col-md-6 col-xxl-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="avtar avtar-s bg-light-primary">
+                                <svg class="pc-icon"><use xlink:href="#custom-dollar-square"></use></svg>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-0 gt-card-title">Direct ROI Income</h6>
+                            </div>
+                        </div>
+                        <div class="bg-body p-3 mt-3 rounded">
+                            <div class="row align-items-center text-center">
+                                <div class="col-6">
+                                    <h4 class="mb-0">{{ $object->qualified_active_directs }}</h4>
+                                    <p class="text-primary mb-0">Qualified Active Directs</p>
+                                </div>
+                                <div class="col-6">
+                                    <h4 class="mb-0 text-warning">{{ number_format($object->direct_roi_percent, 0) }}%</h4>
+                                    <p class="text-primary mb-0">Current Daily ROI %</p>
+                                </div>
+                            </div>
+                            <p class="text-muted mb-0 mt-3" style="font-size: 0.8rem;">
+                                Earn daily based on your direct referrals. More directs, more income — up to 12%.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
             
             <div class="col-md-6 col-xxl-4 mb-4">
                 <div class="card h-100">
