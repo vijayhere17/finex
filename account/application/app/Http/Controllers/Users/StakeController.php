@@ -62,7 +62,7 @@ class StakeController extends Controller
      */
     protected function getFixedSlotAmounts()
     {
-        return [10, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120, 10240, 20480];
+        return config('income.slot_amounts', [10, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120, 10240, 20480]);
     }
 
     /**
@@ -547,8 +547,13 @@ class StakeController extends Controller
             $member->save();
 
             // Direct ROI display: mark slot-active + refresh stored ROI % for member & sponsor.
-            // Does not credit ROI income — percentage only (see App\Services\DirectRoiService).
             app(\App\Services\DirectRoiService::class)->markActiveAndRefreshSponsor($member->fresh());
+
+            // Persist current/next slot on user for dashboard.
+            $progress = app(\App\Services\AutoUpgradeService::class)->resolveSlotProgress($member->fresh());
+            $member->current_slot = $progress['current_slot'];
+            $member->next_slot = $progress['next_slot'];
+            $member->save();
         }
 
         // Add Purchased Kit Log
@@ -832,36 +837,30 @@ class StakeController extends Controller
                     ->first();
 
     if (!$roi_tier) {
-        throw new \Exception('ROI Tier not found.');
+        // Soft: tier optional under new fixed-slot plan; kit still activates.
+        $roi_tier = null;
     }
 
-    // Find current month's ROI
-    $monthlyROI = \App\Models\MonthlyROIRate::where('status', 1)
-        ->whereDate('start_date', '<=', now())
-        ->where(function ($q) {
-            $q->whereDate('end_date', '>=', now())
-              ->orWhereNull('end_date');
-        })
-        ->first();
+    $object->roi_tier_id = $roi_tier->id ?? null;
 
-    if (!$monthlyROI) {
-        throw new \Exception('Monthly ROI not configured.');
-    }
-
-    $object->roi_tier_id = $roi_tier->id;
-
-    // Lock values forever
-    $object->joining_roi_percent = $monthlyROI->daily_roi;
-    $object->apy = $monthlyROI->daily_roi;
-    $object->d_apy = $monthlyROI->daily_roi;
+    // Live Daily ROI uses users.direct_roi_percent — no monthly ROI snapshot required.
+    $object->joining_roi_percent = 0;
+    $object->apy = 0;
+    $object->d_apy = 0;
 
     $object->cap_multiplier = $kit->cap_multiplier;
-$object->maximum_income = $amount * $kit->cap_multiplier;
+    $object->maximum_income = $amount * $kit->cap_multiplier;
     $object->total_roi_paid = 0;
+    $object->roi_days_paid = 0;
+    $object->max_roi_days = (int) config('income.daily_roi.max_days', 300);
+
+    $slotAmounts = config('income.slot_amounts', []);
+    $slotNumber = array_search((float) $amount, array_map('floatval', $slotAmounts), true);
+    $object->slot_number = ($slotNumber === false) ? null : ($slotNumber + 1);
 
     // Keep legacy fields for compatibility
-    $object->return_days = 36500;
-    $object->return_date = date('Y-m-d H:i:s', strtotime($date.' + 36500 days'));
+    $object->return_days = $object->max_roi_days;
+    $object->return_date = date('Y-m-d H:i:s', strtotime($date.' + '.$object->max_roi_days.' days'));
 }
         else
         {
@@ -899,11 +898,20 @@ $object->maximum_income = $amount * $kit->cap_multiplier;
 
             $earning_type = 1;
 
-            if($member->kit_id > 0)
+            if($member->kit_id > 0 || ($member->activation_status ?? '') === 'active')
             {
                 if($commission > 0)
                 {
-                    $walletCon->addearningwalletlog($member->id, 1, $earning_type, $description, $commission, 0, 0, $created_at);
+                    // 2nd/3rd direct income may divert into Auto Upgrade wallet instead of main wallet.
+                    $diverted = false;
+                    if ($level === 1) {
+                        $diverted = app(\App\Services\AutoUpgradeService::class)
+                            ->maybeDivertToAutoUpgrade($member, (int) $from_id, (float) $commission, $description);
+                    }
+
+                    if (!$diverted) {
+                        $walletCon->addearningwalletlog($member->id, 1, $earning_type, $description, $commission, 0, 0, $created_at);
+                    }
                 }
             }
 
@@ -1218,155 +1226,15 @@ $object->maximum_income = $amount * $kit->cap_multiplier;
 
     public function runDailyROI()
     {
-        $walletCon = app('App\Http\Controllers\Users\EarningWalletController');
-        $dashboardCon = app('App\Http\Controllers\Users\DashboardController');
-
-        $objects = UserStaked::where('is_deleted', 0)
-    ->where('topup_type', '!=', 1)
-    ->get();
-
-        foreach($objects as $log)
-        {
-            $member = User::where('id','=',$log->member_id)->first();
-
-            if($member == null)
-            {
-                continue;
-            }
-
-            // Rate is read from the snapshot on the stake row itself (set at activation/migration from the
-            // resolved ROI tier), not re-derived from stake_masters, so it stays locked in at investment time.
-            $per = $log->joining_roi_percent;
-            $base_commission = $log->paid_amount * $per / 100;
-
-            $booster = BoosterAchiever::where('member_id','=',$member->id)->first();
-            $booster_per = $booster ? $booster->bonus_percent : 0;
-            $booster_commission = $booster_per > 0 ? ($log->paid_amount * $booster_per / 100) : 0;
-
-            $commission = $base_commission + $booster_commission;
-
-            // Remaining ROI available under package cap
-$remainingIncome = $log->maximum_income - $log->total_roi_paid;
-
-if ($remainingIncome <= 0) {
-
-    $log->is_deleted = 1;
-    $log->save();
-
-    continue;
-}
-
-// Never pay more than remaining package cap
-if ($commission > $remainingIncome) {
-    $commission = $remainingIncome;
-}
-
-            $base_description = 'Daily ROI Dividend From $'.$log->paid_amount;
-            $booster_description = 'Booster Dividend From $'.$log->paid_amount;
-
-            $remain_commission = $dashboardCon->check3xEarningLimit($log->member_id, $commission);
-
-            if($remain_commission > 0)
-            {
-                // Split the (possibly cap-trimmed) payable amount proportionally across base ROI and Booster
-                // so each shows as its own income type in wallet logs and reports.
-                $ratio = ($commission > 0) ? ($remain_commission / $commission) : 0;
-                $paid_base = $base_commission * $ratio;
-                $paid_booster = $booster_commission * $ratio;
-
-                if($paid_base > 0)
-                {
-                    $walletCon->addearningwalletlog($log->member_id, 1, 2, $base_description, $paid_base, 0, 0, date("Y-m-d H:i:s"));
-                }
-
-                if($paid_booster > 0)
-                {
-                    $walletCon->addearningwalletlog($log->member_id, 1, 8, $booster_description, $paid_booster, 0, 0, date("Y-m-d H:i:s"));
-                }
-
-                $log->receive_return += $remain_commission;
-$log->total_roi_paid += $remain_commission;
-
-// Auto close investment once cap reached
-if ($log->total_roi_paid >= $log->maximum_income) {
-    $log->is_deleted = 1;
-}
-
-$log->save();
-
-                $refer = User::where('id','=',$member->referral_id)->first();
-                if($refer != null && $log->topup_type == 0)
-                {
-                    $this->processlevelcommission($refer->id, 1, $remain_commission, $member->id, $log->kit_id, date("Y-m-d H:i:s"));
-                }
-            }
-            else
-            {
-                if($base_commission > 0)
-                {
-                    $walletCon->addearningwalletlog($log->member_id, 3, 2, $base_description, $base_commission, 0, 0, date("Y-m-d H:i:s"));
-                }
-
-                if($booster_commission > 0)
-                {
-                    $walletCon->addearningwalletlog($log->member_id, 3, 8, $booster_description, $booster_commission, 0, 0, date("Y-m-d H:i:s"));
-                }
-            }
-        }
+        // New Finex plan: Direct ROI % × active slots, Level ROI to uplines, duplicate-safe logs.
+        return app(\App\Services\DailyRoiService::class)->distribute();
     }
     
     public function processlevelcommission($member_id, $level, $amount, $from_id, $kit_id, $created_at)
     {
-        DB::statement('SET SESSION group_concat_max_len = 10000000');
-
-        $walletCon = app('App\Http\Controllers\Users\EarningWalletController');
-        
-        $member = User::where('id','=',$member_id)->first();
-        
-        $from_member = User::where('id','=',$from_id)->first();
-        
-        $from_address = obscureAddress($from_member->username);
-
-        $max_depth = (int) config('income.level_income_max_depth', 200);
-        
-        if($member != null)
-        {
-            $ladder = config('income.level_income_ladder');
-            $per = $ladder[$level] ?? 0;
-
-            $direct = User::where('referral_id','=',$member_id)->where('kit_id','>',0)->count();
-            $required_directs = $this->getLevelIncomeRequiredDirects($level);
-           
-            $commission = $amount * $per / 100;
-            
-            $dashboardCon = app('App\Http\Controllers\Users\DashboardController');
-            $remain_commission = $dashboardCon->check3xEarningLimit($member->id, $commission);
-            
-            if($member->kit_id > 0 && $per > 0)
-            {
-                // ROI Override qualification: active directs threshold (or legacy member.level unlock)
-                if($direct >= $required_directs || (isset($member->level) && $member->level >= $level))
-                {
-                    $description = 'Level '.$level.' Incentive From '.$from_address;
-                    
-                    if($remain_commission > 0)
-                    {
-                        $walletCon->addearningwalletlog($member->id, 1, 4, $description, $remain_commission, 0, 0, $created_at);   
-                    }
-                    else
-                    {
-                        $walletCon->addearningwalletlog($member->id, 3, 4, $description, $commission, 0, 0, $created_at);   
-                    }
-                }
-            }
-            
-            $level++;
-
-            if($member->referral_id > 0 && $level <= $max_depth)
-            {
-                $this->processlevelcommission($member->referral_id, $level, $amount, $from_id, $kit_id, $created_at);
-            }
-        }
+        // Legacy entry point retained for compatibility.
+        // New Level ROI Income is distributed from DailyRoiService → LevelRoiService.
+        return;
     }
 
     //

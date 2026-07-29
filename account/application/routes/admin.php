@@ -202,7 +202,20 @@ Route::middleware('adminauth:admin')->group(function () {
         Route::get('get-swap-txn-logs', 'getAllSwapTxnList');
     });
 
-    Route::get('logout', function () {
+    
+    // Finex compensation plan admin pages
+    Route::controller(App\Http\Controllers\Admin\FinexAdminController::class)->group(function()
+    {
+        Route::get('finex-slots', 'slotManagement');
+        Route::get('finex-direct-roi', 'directRoiMonitor');
+        Route::get('finex-daily-roi-logs', 'dailyRoiLogs');
+        Route::get('finex-level-roi-logs', 'levelRoiLogs');
+        Route::get('finex-auto-upgrade-logs', 'autoUpgradeLogs');
+        Route::get('finex-spillover-logs', 'spilloverLogs');
+        Route::get('finex-member-slots', 'memberSlotStatus');
+    });
+
+Route::get('logout', function () {
         Auth::guard('admin')->logout();
         return redirect('/admin/login');
     });

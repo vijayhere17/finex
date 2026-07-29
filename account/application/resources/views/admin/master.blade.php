@@ -179,7 +179,25 @@
 						</ul> 
 					</li>
 
+					
 					<li class="has-sub root-level"> 
+						<a href="javascript:">
+							<i class="entypo-chart-bar"></i>
+							<span class="title">Finex Plan</span>
+						</a> 
+						<ul> 
+							<li><a href="{{ URL::to('/') }}/admin/finex-slots"><span class="title">Slot Management</span></a></li>
+							<li><a href="{{ URL::to('/') }}/admin/finex-direct-roi"><span class="title">Direct ROI Monitoring</span></a></li>
+							<li><a href="{{ URL::to('/') }}/admin/finex-daily-roi-logs"><span class="title">Daily ROI Logs</span></a></li>
+							<li><a href="{{ URL::to('/') }}/admin/finex-level-roi-logs"><span class="title">Level ROI Logs</span></a></li>
+							<li><a href="{{ URL::to('/') }}/admin/finex-auto-upgrade-logs"><span class="title">Auto Upgrade Logs</span></a></li>
+							<li><a href="{{ URL::to('/') }}/admin/finex-spillover-logs"><span class="title">Spillover Logs</span></a></li>
+							<li><a href="{{ URL::to('/') }}/admin/finex-member-slots"><span class="title">Member Slot Status</span></a></li>
+							<li><a href="{{ URL::to('/') }}/admin/withdrawal-request/0/Pending-Withdrawals"><span class="title">Withdraw Requests</span></a></li>
+						</ul> 
+					</li>
+
+<li class="has-sub root-level"> 
 						<a href="javascript:">
 							<i class="entypo-list"></i>
 							<span class="title">Earning Report</span>

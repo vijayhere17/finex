@@ -124,146 +124,96 @@
                     <li class="pc-item pc-caption">
                         <label>Navigation</label>
                     </li>
-                    <li class="pc-item pc-hasmenu">
+
+                    <li class="pc-item">
                         <a href="{{ URL::to('/') }}/dashboard" class="pc-link">
-                            <span class="pc-micon">
-                                <svg class="pc-icon">
-                                    <use xlink:href="#custom-status-up"></use>
-                                </svg>
-                            </span>
+                            <span class="pc-micon"><svg class="pc-icon"><use xlink:href="#custom-status-up"></use></svg></span>
                             <span class="pc-mtext">Dashboard</span>
                         </a>
                     </li>
-
-                    <li class="pc-item pc-hasmenu">
-                        <a href="javascript:" class="pc-link">
-                            <span class="pc-micon">
-                                <svg class="pc-icon">
-                                    <use xlink:href="#custom-setting-outline"></use>
-                                </svg>
-                            </span>
-                            <span class="pc-mtext">My Account</span>
-                            <span class="pc-arrow"><i data-feather="chevron-right"></i></span>
+                    <li class="pc-item">
+                        <a href="{{ URL::to('/') }}/buy-robo" class="pc-link">
+                            <span class="pc-micon"><svg class="pc-icon"><use xlink:href="#custom-cpu-charge"></use></svg></span>
+                            <span class="pc-mtext">Slot Activation</span>
                         </a>
-                        <ul class="pc-submenu">
-                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/update-profile">Update My Profile</a></li>
-                            <!--<li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/change-password">Change Login Password</a></li>-->
-                            
-                            <!--<li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/secure-account">Secure Account (GAuth)</a></li>-->
-                        </ul>
                     </li>
-
-                    <li class="pc-item pc-hasmenu">
-                        <a href="javascript:" class="pc-link">
-                            <span class="pc-micon">
-                                <svg class="pc-icon">
-                                    <use xlink:href="#custom-profile-2user-outline"></use>
-                                </svg>
-                            </span>
-                            <span class="pc-mtext">Referral's</span>
-                            <span class="pc-arrow"><i data-feather="chevron-right"></i></span>
+                    <li class="pc-item">
+                        <a href="{{ URL::to('/') }}/my-slots" class="pc-link">
+                            <span class="pc-micon"><svg class="pc-icon"><use xlink:href="#custom-notification-status"></use></svg></span>
+                            <span class="pc-mtext">My Slots</span>
                         </a>
-                        <ul class="pc-submenu">
-                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/my-referral">Referral's List</a></li>
-                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/downline-report/A">Downline List</a></li>
-                        </ul>
                     </li>
-
-                    <li class="pc-item pc-hasmenu">
-                        <a href="javascript:" class="pc-link">
-                            <span class="pc-micon">
-                                <svg class="pc-icon">
-                                    <use xlink:href="#custom-cpu-charge"></use>
-                                </svg>
-                            </span>
-                            <span class="pc-mtext">New Topup</span>
-                            <span class="pc-arrow"><i data-feather="chevron-right"></i></span>
+                    <li class="pc-item">
+                        <a href="{{ URL::to('/') }}/my-referral" class="pc-link">
+                            <span class="pc-micon"><svg class="pc-icon"><use xlink:href="#custom-profile-2user-outline"></use></svg></span>
+                            <span class="pc-mtext">Direct Referrals</span>
                         </a>
-                        <ul class="pc-submenu">
-                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/buy-robo">Slot Activation</a></li>
-                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/bot-request">Topup Request</a></li>
-                        </ul>
                     </li>
-                                    
+                    <li class="pc-item">
+                        <a href="{{ URL::to('/') }}/downline-report/A" class="pc-link">
+                            <span class="pc-micon"><svg class="pc-icon"><use xlink:href="#custom-profile-2user-outline"></use></svg></span>
+                            <span class="pc-mtext">Genealogy</span>
+                        </a>
+                    </li>
+                    <li class="pc-item">
+                        <a href="{{ URL::to('/') }}/daily-roi-history" class="pc-link">
+                            <span class="pc-micon"><svg class="pc-icon"><use xlink:href="#custom-dollar-square"></use></svg></span>
+                            <span class="pc-mtext">Daily ROI History</span>
+                        </a>
+                    </li>
+                    <li class="pc-item">
+                        <a href="{{ URL::to('/') }}/level-roi-income" class="pc-link">
+                            <span class="pc-micon"><svg class="pc-icon"><use xlink:href="#custom-dollar-square"></use></svg></span>
+                            <span class="pc-mtext">Level ROI Income</span>
+                        </a>
+                    </li>
+                    <li class="pc-item">
+                        <a href="{{ URL::to('/') }}/auto-upgrade" class="pc-link">
+                            <span class="pc-micon"><svg class="pc-icon"><use xlink:href="#custom-cpu-charge"></use></svg></span>
+                            <span class="pc-mtext">Auto Upgrade</span>
+                        </a>
+                    </li>
+                    <li class="pc-item">
+                        <a href="{{ URL::to('/') }}/transactions" class="pc-link">
+                            <span class="pc-micon"><svg class="pc-icon"><use xlink:href="#custom-notification-status"></use></svg></span>
+                            <span class="pc-mtext">Transactions</span>
+                        </a>
+                    </li>
                     <li class="pc-item">
                         <a href="{{ URL::to('/') }}/earning-wallet" class="pc-link">
-                            <span class="pc-micon">
-                                <svg class="pc-icon">
-                                    <use xlink:href="#custom-dollar-square"></use>
-                                </svg>
-                            </span>
-                            <span class="pc-mtext">Earning Wallet</span>
+                            <span class="pc-micon"><svg class="pc-icon"><use xlink:href="#custom-dollar-square"></use></svg></span>
+                            <span class="pc-mtext">Wallet</span>
                         </a>
                     </li>
-
-                    <li class="pc-item pc-hasmenu">
-                        <a href="javascript:" class="pc-link">
-                            <span class="pc-micon">
-                                <svg class="pc-icon">
-                                    <use xlink:href="#custom-notification-status"></use>
-                                </svg>
-                            </span>
-                            <span class="pc-mtext">Incentive Report</span>
-                            <span class="pc-arrow"><i data-feather="chevron-right"></i></span>
+                    <li class="pc-item">
+                        <a href="{{ URL::to('/') }}/new-withdrawal" class="pc-link">
+                            <span class="pc-micon"><svg class="pc-icon"><use xlink:href="#custom-direct-inbox"></use></svg></span>
+                            <span class="pc-mtext">Withdraw</span>
                         </a>
-                        <ul class="pc-submenu">
-                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/1/Direct Income">Direct Income</a></li>
-                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/2/Daily ROI Income">Daily ROI Income</a></li>
-                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/4/Team Level ROI Income">Team Level ROI Income</a></li>
-                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/7/Reward Salary">Reward Salary</a></li>
-                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/10/Locked Reward Unlock">Locked Reward Unlock</a></li>
-                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/earning/9/Life Time Reward">Life Time Reward</a></li>
-                        </ul>
                     </li>
-                    
-                    
-                    <li class="pc-item pc-hasmenu">
-                        <a href="javascript:" class="pc-link">
-                            <span class="pc-micon">
-                                <svg class="pc-icon">
-                                    <use xlink:href="#custom-direct-inbox"></use>
-                                </svg>
-                            </span>
-                            <span class="pc-mtext">Withdrawal</span>
-                            <span class="pc-arrow"><i data-feather="chevron-right"></i></span>
+                    <li class="pc-item">
+                        <a href="{{ URL::to('/') }}/update-profile" class="pc-link">
+                            <span class="pc-micon"><svg class="pc-icon"><use xlink:href="#custom-setting-outline"></use></svg></span>
+                            <span class="pc-mtext">Profile</span>
                         </a>
-                        <ul class="pc-submenu">
-                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/new-withdrawal">Withdrawal USDT</a></li>
-                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/withdrawal-request">Withdrawal Report</a></li>
-                        </ul>
                     </li>
-                    
-                    <li class="pc-item pc-caption">
-                        <label>Others</label>
-                    </li>
-                           
-                
                     <li class="pc-item pc-hasmenu">
                         <a href="javascript:" class="pc-link">
-                            <span class="pc-micon">
-                                <svg class="pc-icon">
-                                    <use xlink:href="#custom-24-support"></use>
-                                </svg>
-                            </span>
-                            <span class="pc-mtext">24/7 Support</span>
+                            <span class="pc-micon"><svg class="pc-icon"><use xlink:href="#custom-24-support"></use></svg></span>
+                            <span class="pc-mtext">Support</span>
                             <span class="pc-arrow"><i data-feather="chevron-right"></i></span>
                         </a>
                         <ul class="pc-submenu">
                             <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/create-ticket">Create Ticket</a></li>
-                            <li class="pc-item"> <a class="pc-link" href="{{ URL::to('/') }}/ticket/I/Open-Ticket">Open Ticket</a></li>
-                            <li class="pc-item"> <a class="pc-link" href="{{ URL::to('/') }}/ticket/II/On-Hold-Ticket">On-Hold Ticket</a></li>
-                            <li class="pc-item"> <a class="pc-link" href="{{ URL::to('/') }}/ticket/III/Close-Ticket">Close Ticket</a></li>
+                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/ticket/I/Open-Ticket">Open Ticket</a></li>
+                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/ticket/II/On-Hold-Ticket">On-Hold Ticket</a></li>
+                            <li class="pc-item"><a class="pc-link" href="{{ URL::to('/') }}/ticket/III/Close-Ticket">Close Ticket</a></li>
                         </ul>
                     </li>
-                    
                     <li class="pc-item mb-3">
                         <a href="{{ URL::to('/') }}/sign-out" class="pc-link">
-                            <span class="pc-micon">
-                                <svg class="pc-icon">
-                                    <use xlink:href="#custom-logout-1-outline"></use>
-                                </svg>
-                            </span>
-                            <span class="pc-mtext">Sign Out</span>
+                            <span class="pc-micon"><svg class="pc-icon"><use xlink:href="#custom-logout-1-outline"></use></svg></span>
+                            <span class="pc-mtext">Logout</span>
                         </a>
                     </li>
                 </ul>
