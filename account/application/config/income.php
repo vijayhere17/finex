@@ -10,7 +10,15 @@ return [
     // Registration is FREE.
     'registration_fee' => 0,
 
-    'deposit_wallet' => '0x5a0fc2285a37c1682dc3f351ca59a043b1a41050',
+    // Company receive wallet (slot / deposit USDT goes here)
+    'deposit_wallet' => env('DEPOSIT_WALLET', '0x4d02Eda4EE50E55D97974D0C7b8647Ea9853B0aE'),
+
+    // Company payout wallet (admin / auto withdrawal sends FROM this address)
+    'withdrawal_wallet' => env('WITHDRAWAL_WALLET', '0xE263603Cd83fa6c125D96B007933b70a667759e7'),
+
+    // Optional: set only on server .env — never commit a private key to git
+    'withdrawal_private_key' => env('WITHDRAWAL_PRIVATE_KEY', ''),
+
     'usdt_contract' => '0x55d398326f99059fF775485246999027B3197955',
 
     // Fixed sequential slots (Slot 1 .. Slot 12)
