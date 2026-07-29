@@ -296,8 +296,10 @@ ORDER BY `amount` ASC;
 -- Payment activation resolves kit via roi_tier_masters (amount range) then
 -- stake_masters.percantage. With fixed slots, give each slot its own tier row
 -- (min_amount = max_amount = slot price, daily_percent = 3 to match percantage).
--- Schema from migration + model: id, min_amount, max_amount, daily_percent,
--- is_active, timestamps; model also uses cap_multiplier when present.
+--
+-- Columns used by admin UI + migration:
+--   min_amount, max_amount, daily_percent, is_active, created_at, updated_at
+-- (Do not include cap_multiplier here — admin form/migration do not use it.)
 -- =============================================================================
 
 START TRANSACTION;
@@ -307,43 +309,25 @@ UPDATE `roi_tier_masters`
 SET `is_active` = 0, `updated_at` = NOW()
 WHERE `is_active` = 1;
 
--- Insert 12 fixed-slot ROI tiers (idempotent by min/max/amount if re-run manually)
 INSERT INTO `roi_tier_masters`
-(`min_amount`, `max_amount`, `daily_percent`, `cap_multiplier`, `is_active`, `created_at`, `updated_at`)
+(`min_amount`, `max_amount`, `daily_percent`, `is_active`, `created_at`, `updated_at`)
 VALUES
-(10,     10,     3.000, 2.00, 1, NOW(), NOW()),
-(20,     20,     3.000, 2.25, 1, NOW(), NOW()),
-(40,     40,     3.000, 2.50, 1, NOW(), NOW()),
-(80,     80,     3.000, 2.75, 1, NOW(), NOW()),
-(160,    160,    3.000, 3.00, 1, NOW(), NOW()),
-(320,    320,    3.000, 3.25, 1, NOW(), NOW()),
-(640,    640,    3.000, 3.50, 1, NOW(), NOW()),
-(1280,   1280,   3.000, 3.75, 1, NOW(), NOW()),
-(2560,   2560,   3.000, 4.00, 1, NOW(), NOW()),
-(5120,   5120,   3.000, 4.25, 1, NOW(), NOW()),
-(10240,  10240,  3.000, 4.50, 1, NOW(), NOW()),
-(20480,  20480,  3.000, 4.75, 1, NOW(), NOW());
+(10,     10,     3.000, 1, NOW(), NOW()),
+(20,     20,     3.000, 1, NOW(), NOW()),
+(40,     40,     3.000, 1, NOW(), NOW()),
+(80,     80,     3.000, 1, NOW(), NOW()),
+(160,    160,    3.000, 1, NOW(), NOW()),
+(320,    320,    3.000, 1, NOW(), NOW()),
+(640,    640,    3.000, 1, NOW(), NOW()),
+(1280,   1280,   3.000, 1, NOW(), NOW()),
+(2560,   2560,   3.000, 1, NOW(), NOW()),
+(5120,   5120,   3.000, 1, NOW(), NOW()),
+(10240,  10240,  3.000, 1, NOW(), NOW()),
+(20480,  20480,  3.000, 1, NOW(), NOW());
 
 COMMIT;
 
-SELECT `id`, `min_amount`, `max_amount`, `daily_percent`, `cap_multiplier`, `is_active`
+SELECT `id`, `min_amount`, `max_amount`, `daily_percent`, `is_active`
 FROM `roi_tier_masters`
 WHERE `is_active` = 1
 ORDER BY `min_amount` ASC;
-
--- If your roi_tier_masters table does NOT have cap_multiplier, use this instead:
--- INSERT INTO `roi_tier_masters`
--- (`min_amount`, `max_amount`, `daily_percent`, `is_active`, `created_at`, `updated_at`)
--- VALUES
--- (10,10,3.000,1,NOW(),NOW()),
--- (20,20,3.000,1,NOW(),NOW()),
--- (40,40,3.000,1,NOW(),NOW()),
--- (80,80,3.000,1,NOW(),NOW()),
--- (160,160,3.000,1,NOW(),NOW()),
--- (320,320,3.000,1,NOW(),NOW()),
--- (640,640,3.000,1,NOW(),NOW()),
--- (1280,1280,3.000,1,NOW(),NOW()),
--- (2560,2560,3.000,1,NOW(),NOW()),
--- (5120,5120,3.000,1,NOW(),NOW()),
--- (10240,10240,3.000,1,NOW(),NOW()),
--- (20480,20480,3.000,1,NOW(),NOW());
