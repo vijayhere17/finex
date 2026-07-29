@@ -62,7 +62,10 @@ function getcalculation()
 
     $("#txt_cap").text((cap > 0 ? cap.toFixed(2) : '0') + "x");
 
-    var apy = parseFloat(window.monthlyROI);
+    var apy = parseFloat(window.directRoiPercent);
+    if (isNaN(apy)) {
+        apy = parseFloat(window.slotMeta && window.slotMeta.direct_roi_percent);
+    }
     if (isNaN(apy)) {
         apy = 0;
     }
@@ -70,7 +73,7 @@ function getcalculation()
     var payable = (amount / coin_rate).toFixed(8);
     payable_coin = payable;
 
-    $("#txt_apy").text(apy.toFixed(2) + "%");
+    $("#txt_apy").text(apy.toFixed(0) + "%");
     $("#txt_payable").text(payable);
 
     if (amount > 0) {

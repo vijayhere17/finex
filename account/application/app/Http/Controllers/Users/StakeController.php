@@ -102,9 +102,16 @@ class StakeController extends Controller
 
         $next_slot = ($current_slot < count($amounts)) ? ($current_slot + 1) : 0;
         $next_slot_amount = ($next_slot > 0) ? $amounts[$next_slot - 1] : 0;
-        $activation_status = ($current_slot > 0) ? 'Activated' : 'Registered';
 
-        // Attach computed progress fields for the Blade (no DB migration required).
+        // Prefer persisted activation_status; fall back for pre-migration rows.
+        $dbStatus = strtolower((string) ($member->activation_status ?? ''));
+        if ($dbStatus === \App\Services\DirectRoiService::STATUS_ACTIVE || $current_slot > 0) {
+            $activation_status = \App\Services\DirectRoiService::STATUS_ACTIVE;
+        } else {
+            $activation_status = \App\Services\DirectRoiService::STATUS_REGISTERED;
+        }
+
+        // Attach computed progress fields for the Blade (no DB migration required for slots).
         $member->current_slot = $current_slot;
         $member->next_slot = $next_slot;
         $member->activation_status = $activation_status;
@@ -155,19 +162,14 @@ class StakeController extends Controller
         $member = Auth::user();
         $slotProgress = $this->buildSlotProgress($member, $packages);
 
+        // Direct ROI Income — calculate & store % (no wallet credit yet).
+        $directRoi = app(\App\Services\DirectRoiService::class)->getDisplayStats($member->fresh());
+
         $usdt_con_addr = $this->contractaddr();
         
         $usdt_con_abi = $this->contractabi();
 
         $to_address = $this->depositaddress();
-
-        $currentMonthlyROI = \App\Models\MonthlyROIRate::where('status',1)
-    ->whereDate('start_date','<=',now())
-    ->where(function($q){
-        $q->whereDate('end_date','>=',now())
-          ->orWhereNull('end_date');
-    })
-    ->first();
 
         return view('users.buy-bot')->with([
     'page_titel'=>$page_titel,
@@ -178,10 +180,11 @@ class StakeController extends Controller
     'next_slot'=>$slotProgress['next_slot'],
     'next_slot_amount'=>$slotProgress['next_slot_amount'],
     'activation_status'=>$slotProgress['activation_status'],
+    'qualified_active_directs'=>$directRoi['qualified_active_directs'],
+    'direct_roi_percent'=>$directRoi['direct_roi_percent'],
     'usdt_con_addr'=>$usdt_con_addr,
     'usdt_con_abi'=>$usdt_con_abi,
     'to_address'=>$to_address,
-    'currentMonthlyROI'=>$currentMonthlyROI
 ])->toJS();
     }
     
@@ -542,6 +545,10 @@ class StakeController extends Controller
             }
             $member->self_investment = ($member->self_investment+$amount);
             $member->save();
+
+            // Direct ROI display: mark slot-active + refresh stored ROI % for member & sponsor.
+            // Does not credit ROI income — percentage only (see App\Services\DirectRoiService).
+            app(\App\Services\DirectRoiService::class)->markActiveAndRefreshSponsor($member->fresh());
         }
 
         // Add Purchased Kit Log
@@ -981,6 +988,9 @@ $object->maximum_income = $amount * $kit->cap_multiplier;
             $member->self_investment = ($member->self_investment+$amount);
             
             $member->save();
+
+            // Direct ROI display fields only (no income credit).
+            app(\App\Services\DirectRoiService::class)->markActiveAndRefreshSponsor($member->fresh());
         }
 
         // Add Purchased Kit Log

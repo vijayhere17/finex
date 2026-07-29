@@ -60,6 +60,15 @@ return [
         ['from' => 101,'to' => 200, 'directs' => 20],
     ],
 
+    // Direct ROI Income — daily % based on qualified active directs (1% each, max 12%).
+    // Used for display/storage now; future daily distribution module will credit from this %.
+    'direct_roi' => [
+        'percent_per_direct' => 1,
+        'max_percent' => 12,
+        'active_status' => 'active',
+        'registered_status' => 'registered',
+    ],
+
     // Booster Income - directs sponsored within 48hrs of own activation => extra daily ROI percent
     'booster_tiers' => [
         10 => 0.25,
