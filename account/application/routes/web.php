@@ -251,9 +251,21 @@ Route::group(['middleware' => 'auth'], function ()
 // cron routes
 
 Route::get('/daily-process-daily', function () {
-    
+
     Artisan::call("act:processapi");
-    
+
+    // TEMP testing: allow ROI every 10 minutes via this URL (no wait for 00:05).
+    // After testing: restore the 00:05-only gate below.
+    if (config('income.test_roi.enabled', false)) {
+        $out = Artisan::call('act:processdaily', ['--test' => true]);
+        return response()->json([
+            'ok' => true,
+            'mode' => 'test_roi',
+            'output' => trim(Artisan::output()),
+            'exit' => $out,
+        ]);
+    }
+
     if (date("H:i") == '00:05') {
        Artisan::call("act:processdaily");
     }

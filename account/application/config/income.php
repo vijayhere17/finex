@@ -38,6 +38,15 @@ return [
         'earning_type' => 2,
     ],
 
+    // TEMP testing: run ROI every N minutes using a new fake calendar date each run.
+    // Production: set enabled => false (normal cron is once/day at 00:05).
+    'test_roi' => [
+        'enabled' => env('TEST_ROI_ENABLED', true),
+        'interval_minutes' => (int) env('TEST_ROI_INTERVAL_MINUTES', 10),
+        // Fake dates start here and advance +1 day per successful test run
+        'date_seed' => env('TEST_ROI_DATE_SEED', '2026-01-01'),
+    ],
+
     // Level Income on ROI — % of downline Daily ROI, unlock by active directs
     // 1 direct → Level 1, …, 12 directs → Level 12
     'level_roi' => [
