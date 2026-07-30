@@ -112,12 +112,19 @@ function initiallize() {
 }
 
 // Approve (2) → activate slot / Reject (3) → mark failed. Used while real USDT pay is commented out.
+var stakeReqBusy = false;
 function actionStakeReq(id, status)
 {
+    if (stakeReqBusy) {
+        return;
+    }
+
     var label = (status == 2) ? 'approve and topup' : 'reject';
     if (!confirm('Are you sure you want to ' + label + ' this request?')) {
         return;
     }
+
+    stakeReqBusy = true;
 
     var reqObj = {
         _token: $("#token").val(),
@@ -137,14 +144,21 @@ function actionStakeReq(id, status)
                 showSuccess(result.message || 'Updated successfully!');
                 oTable.draw();
             } else {
-                showError(result.error || Errors[result.error_code] || 'Request failed.');
+                showError(result.error || (Errors && Errors[result.error_code]) || 'Request failed.');
             }
             hideMask();
+            stakeReqBusy = false;
+        },
+        error: function() {
+            showError("An error occurred. Please try later.");
+            hideMask();
+            stakeReqBusy = false;
         },
         statusCode: {
             500: function() {
                 showError("An error occurred. Please try later.");
                 hideMask();
+                stakeReqBusy = false;
             }
         }
     });

@@ -84,6 +84,30 @@ class AutoUpgradeService
         return true;
     }
 
+    /**
+     * Finex path (no Direct Sponsor wallet income): credit auto-upgrade pot from
+     * 2nd/3rd activated direct using % of the activated slot amount.
+     */
+    public function creditFromDirectActivation(User $sponsor, int $fromId, float $slotAmount): bool
+    {
+        if ($slotAmount <= 0) {
+            return false;
+        }
+
+        $position = $this->directActivationPosition((int) $sponsor->id, $fromId);
+        $percents = config('income.auto_upgrade.divert_percent_of_slot', [2 => 2, 3 => 1]);
+        $percent = (float) ($percents[$position] ?? 0);
+
+        if ($percent <= 0) {
+            return false;
+        }
+
+        $amount = ($slotAmount * $percent) / 100.0;
+        $description = 'Slot $'.$slotAmount.' activation (Direct #'.$position.')';
+
+        return $this->maybeDivertToAutoUpgrade($sponsor, $fromId, $amount, $description);
+    }
+
     protected static $activating = false;
 
     /**
