@@ -254,19 +254,36 @@ Route::get('/daily-process-daily', function () {
 
     Artisan::call("act:processapi");
 
-    // TEMP testing: allow ROI every 10 minutes via this URL (no wait for 00:05).
-    // After testing: restore the 00:05-only gate below.
-    if (config('income.test_roi.enabled', false)) {
-        $out = Artisan::call('act:processdaily', ['--test' => true]);
+    // TEMP testing: always run Daily ROI when this URL is opened in browser,
+    // and always return JSON so you see the result (not a blank page).
+    // After testing: restore 00:05-only gate and remove the JSON return if desired.
+    if (config('income.test_roi.enabled', true)) {
+        Artisan::call('act:processdaily', ['--test' => true]);
+
         return response()->json([
             'ok' => true,
             'mode' => 'test_roi',
+            'message' => 'Daily ROI + Level ROI process finished. Check daily_roi_logs / level_roi_logs.',
             'output' => trim(Artisan::output()),
-            'exit' => $out,
+            'time' => date('Y-m-d H:i:s'),
         ]);
     }
 
-    if (date("H:i") == '00:05') {
-       Artisan::call("act:processdaily");
+    if (date('H:i') == '00:05') {
+        Artisan::call('act:processdaily');
+
+        return response()->json([
+            'ok' => true,
+            'mode' => 'production_daily',
+            'output' => trim(Artisan::output()),
+            'time' => date('Y-m-d H:i:s'),
+        ]);
     }
+
+    return response()->json([
+        'ok' => false,
+        'mode' => 'skipped',
+        'message' => 'ROI runs at 00:05 only (test_roi disabled). Enable income.test_roi.enabled or wait for 00:05.',
+        'time' => date('Y-m-d H:i:s'),
+    ]);
 });
