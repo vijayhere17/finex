@@ -40,7 +40,13 @@ class FinexPanelController extends Controller
     public function levelRoiIncome()
     {
         $page_titel = 'Level ROI Income';
-        $rows = LevelRoiLog::where('member_id', Auth::id())->orderBy('roi_date', 'desc')->orderBy('id', 'desc')->paginate(50);
+        $rows = LevelRoiLog::where('member_id', Auth::id())
+            ->with(['fromUser' => function ($q) {
+                $q->select('id', 'username', 'firstname', 'lastname');
+            }])
+            ->orderBy('roi_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->paginate(50);
 
         return view('users.finex.level-roi-history', compact('page_titel', 'rows'));
     }
