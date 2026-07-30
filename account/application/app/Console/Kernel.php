@@ -27,8 +27,15 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // $schedule->command('act:processapi')->everyMinute();
-        
-        $schedule->command('act:processdaily')->dailyAt('00:05');
+
+        // TEMP testing: ROI every 10 minutes (uses advancing fake dates).
+        // After testing: set income.test_roi.enabled = false and keep only dailyAt('00:05').
+        if (config('income.test_roi.enabled', false)) {
+            $minutes = max(1, (int) config('income.test_roi.interval_minutes', 10));
+            $schedule->command('act:processdaily --test')->cron('*/'.$minutes.' * * * *');
+        } else {
+            $schedule->command('act:processdaily')->dailyAt('00:05');
+        }
     }
 
     /**
