@@ -585,11 +585,13 @@ class StakeController extends Controller
                 $refer->direct_business = ($refer->direct_business+$amount);
                 $refer->save();
 
-                // Booster Income: this activation may complete the sponsor's 48hr / 3-direct target
-                $this->processBoosterIncome($refer);
+                // Legacy Booster Income (disabled for Finex — see income.legacy_booster_enabled)
+                if (config('income.legacy_booster_enabled', false)) {
+                    $this->processBoosterIncome($refer);
+                }
 
                 // Locked Reward Unlock: 10% of this referral's package amount (once per referral activation)
-                if($is_first_activation)
+                if($is_first_activation && config('income.legacy_locked_reward_enabled', false))
                 {
                     $this->unlockLockedRewardBonus($refer->id, $member->id, $amount);
                 }
@@ -740,6 +742,11 @@ class StakeController extends Controller
 
     public function processBoosterIncome($refer)
     {
+        // Finex plan has no Booster Income — legacy Ginance path disabled.
+        if (!config('income.legacy_booster_enabled', false)) {
+            return;
+        }
+
         if($refer == null || $refer->is_booster > 0 || $refer->activation_date == null)
         {
             return;
@@ -1029,8 +1036,10 @@ class StakeController extends Controller
                     $refer->direct_business = ($refer->direct_business+$amount);
                     $refer->save();
 
-                    // Booster Income: this activation may complete the sponsor's 48hr / 3-direct target
-                    $this->processBoosterIncome($refer);
+                    // Legacy Booster Income (disabled for Finex — see income.legacy_booster_enabled)
+                    if (config('income.legacy_booster_enabled', false)) {
+                        $this->processBoosterIncome($refer);
+                    }
                 }
 
                 if($refer->kit_id > 0)
