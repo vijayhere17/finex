@@ -184,6 +184,61 @@ class StakeReportController extends Controller
         return json_encode($response);
     }
 
+    /**
+     * TEMP testing helper: Approve pending topup (no real USDT) → activate slot.
+     * Reject → mark failed. Keep Manual Topup as well.
+     */
+    public function actionStakeRequest(Request $request)
+    {
+        try {
+            $v = Validator::make($request->all(), [
+                'stake_req_id' => 'required',
+                'status' => 'required|in:2,3',
+            ]);
+
+            if ($v->fails()) {
+                return response()->json(['success' => false, 'error' => 'Invalid request data.'], 200);
+            }
+
+            $object = StakeRequest::find($request->stake_req_id);
+            if ($object == null) {
+                return response()->json(['success' => false, 'error' => 'Stake request not found.'], 200);
+            }
+
+            if ((int) $object->status !== 0) {
+                return response()->json(['success' => false, 'error' => 'Only pending requests can be updated.'], 200);
+            }
+
+            $newStatus = (int) $request->status;
+
+            if ($newStatus === 2) {
+                $stakeCon = app('App\Http\Controllers\Users\StakeController');
+                $stakeCon->setStakeActivation($object->member_id, $object->stake_id, $object->amount, $object->id);
+
+                $object->status = 2;
+                $object->save();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Request approved. ID topped up successfully.',
+                    'error' => '',
+                ], 200);
+            }
+
+            $object->status = 3;
+            $object->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Request rejected.',
+                'error' => '',
+            ], 200);
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            return response()->json(['success' => false, 'error' => 'An error occurred processing.'], 200);
+        }
+    }
+
     public function getStakedReport(Request $request){
         $draw = $request->get('draw');
         $start = $request->get("start");

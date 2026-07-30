@@ -39,6 +39,7 @@ Route::middleware('adminauth:admin')->group(function () {
     {
         Route::get('stake-request/{status}/{title}', 'stakeReport');
         Route::get('get-stake-report', 'getStakeRequest');
+        Route::post('process-stake-request-action', 'actionStakeRequest');
 
         Route::get('user-staked-report', 'userStakedReport');
         Route::get('get-staked-report', 'getStakedReport');

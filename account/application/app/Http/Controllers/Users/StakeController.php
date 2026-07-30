@@ -311,7 +311,14 @@ class StakeController extends Controller
                 }
             }
 
-            return response()->json(array('success'=>true, 'id'=>$object->id, 'error'=>''), 200);
+            return response()->json(array(
+                'success'=>true,
+                'id'=>$object->id,
+                'message'=>($status == 0
+                    ? 'Your topup request was submitted. Waiting for admin approval.'
+                    : ''),
+                'error'=>''
+            ), 200);
         } catch(Exception $exception) {
             Log::error($exception);
             return response()->json(array('success'=>false,'error'=> 'An error occurred processing'), 200);
