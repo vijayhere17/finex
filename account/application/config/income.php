@@ -79,7 +79,9 @@ return [
         ['from' => 1, 'to' => 12, 'mode' => 'equal'],
     ],
 
-    // Direct sponsor income on slot activation (still credited; 2nd/3rd may divert to auto-upgrade)
+    // Direct sponsor % on slot buy (OLD plan). Finex uses Direct ROI % + Level ROI only.
+    // Keep ladder for reference; set enabled false so no "Direct Sponsor Income" wallet credit.
+    'direct_sponsor_enabled' => false,
     'direct_sponsor_levels' => [
         1 => 3,
         2 => 2,
@@ -87,9 +89,14 @@ return [
     ],
 
     // Auto Slot Upgrade — accumulate income from 2nd & 3rd directs toward next slot
+    // When direct_sponsor_enabled is false, AutoUpgradeService uses slot amount * these % instead.
     'auto_upgrade' => [
         'source_direct_positions' => [2, 3], // 2nd and 3rd activated directs
         'income_earning_type' => 11,         // Auto Upgrade Income to uplines
+        'divert_percent_of_slot' => [        // % of activated slot amount → auto-upgrade wallet
+            2 => 2,
+            3 => 1,
+        ],
         'upline_ladder' => [                 // % of upgraded slot amount
             1 => 5,
             2 => 3,

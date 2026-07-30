@@ -530,6 +530,14 @@ class StakeController extends Controller
 
     public function setStakeActivation($member_id, $kit_id, $amount, $s_r_id)
     {
+        // Idempotent: same stake request must not create a second slot (double Approve).
+        if ($s_r_id > 0) {
+            $existing = UserStaked::where('s_r_id', $s_r_id)->first();
+            if ($existing != null) {
+                return $existing;
+            }
+        }
+
         $walletCon = app('App\Http\Controllers\Users\EarningWalletController');
 
         $kit = $this->resolveRoiTierKit($amount);
@@ -570,8 +578,8 @@ class StakeController extends Controller
         User::whereRaw('FIND_IN_SET(id,"'.$member->referral_uplines.'")')
             ->update(['team_investment'=> DB::raw('team_investment+'.$amount)]);
 
-        // Locked Reward Bonus: allocate once on first package activation only
-        if($is_first_activation)
+        // Locked Reward Bonus: legacy — disabled for Finex
+        if($is_first_activation && config('income.legacy_locked_reward_enabled', false))
         {
             $this->allocateLockedRewardBonus($member->id);
         }
@@ -590,16 +598,23 @@ class StakeController extends Controller
                     $this->processBoosterIncome($refer);
                 }
 
-                // Locked Reward Unlock: 10% of this referral's package amount (once per referral activation)
+                // Locked Reward Unlock: legacy — disabled for Finex
                 if($is_first_activation && config('income.legacy_locked_reward_enabled', false))
                 {
                     $this->unlockLockedRewardBonus($refer->id, $member->id, $amount);
                 }
             }
 
+            // Finex: no Direct Sponsor / referral wallet income on slot buy.
+            // 2nd/3rd direct still can fund Auto Upgrade wallet per plan.
             if($refer != null && $refer->kit_id > 0)
             {
-                self::processreferralcommission($refer->id, 1, $amount, $member->id, $kit->id, date("Y-m-d H:i:s"));
+                if (config('income.direct_sponsor_enabled', false)) {
+                    self::processreferralcommission($refer->id, 1, $amount, $member->id, $kit->id, date("Y-m-d H:i:s"));
+                } else {
+                    app(\App\Services\AutoUpgradeService::class)
+                        ->creditFromDirectActivation($refer, (int) $member->id, (float) $amount);
+                }
             }
         }
     }
@@ -1042,9 +1057,14 @@ class StakeController extends Controller
                     }
                 }
 
-                if($refer->kit_id > 0)
+                if($refer != null && $refer->kit_id > 0)
                 {
-                    self::processreferralcommission($refer->id, 1, $amount, $member->id, $kit_id, date("Y-m-d H:i:s"));
+                    if (config('income.direct_sponsor_enabled', false)) {
+                        self::processreferralcommission($refer->id, 1, $amount, $member->id, $kit_id, date("Y-m-d H:i:s"));
+                    } else {
+                        app(\App\Services\AutoUpgradeService::class)
+                            ->creditFromDirectActivation($refer, (int) $member->id, (float) $amount);
+                    }
                 }
             }
         }

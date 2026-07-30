@@ -187,6 +187,7 @@ class StakeReportController extends Controller
     /**
      * TEMP testing helper: Approve pending topup (no real USDT) → activate slot.
      * Reject → mark failed. Keep Manual Topup as well.
+     * Idempotent: first click marks processing so a retry cannot double-topup.
      */
     public function actionStakeRequest(Request $request)
     {
@@ -200,18 +201,60 @@ class StakeReportController extends Controller
                 return response()->json(['success' => false, 'error' => 'Invalid request data.'], 200);
             }
 
-            $object = StakeRequest::find($request->stake_req_id);
-            if ($object == null) {
-                return response()->json(['success' => false, 'error' => 'Stake request not found.'], 200);
-            }
-
-            if ((int) $object->status !== 0) {
-                return response()->json(['success' => false, 'error' => 'Only pending requests can be updated.'], 200);
-            }
-
             $newStatus = (int) $request->status;
 
-            if ($newStatus === 2) {
+            return DB::transaction(function () use ($request, $newStatus) {
+                $object = StakeRequest::where('id', $request->stake_req_id)->lockForUpdate()->first();
+
+                if ($object == null) {
+                    return response()->json(['success' => false, 'error' => 'Stake request not found.'], 200);
+                }
+
+                // Already success
+                if ((int) $object->status === 2) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Already approved / topped up.',
+                        'error' => '',
+                    ], 200);
+                }
+
+                if ((int) $object->status === 3) {
+                    return response()->json(['success' => false, 'error' => 'Request was already rejected.'], 200);
+                }
+
+                // status 1 = processing (prevents double Approve race)
+                if ((int) $object->status === 1 && $newStatus === 2) {
+                    $existingStake = UserStaked::where('s_r_id', $object->id)->first();
+                    if ($existingStake != null) {
+                        $object->status = 2;
+                        $object->save();
+                        return response()->json([
+                            'success' => true,
+                            'message' => 'Already topped up (recovered).',
+                            'error' => '',
+                        ], 200);
+                    }
+                }
+
+                if (!in_array((int) $object->status, [0, 1], true)) {
+                    return response()->json(['success' => false, 'error' => 'Only pending requests can be updated.'], 200);
+                }
+
+                if ($newStatus === 3) {
+                    $object->status = 3;
+                    $object->save();
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Request rejected.',
+                        'error' => '',
+                    ], 200);
+                }
+
+                // Mark processing before activation so a second click cannot create another slot.
+                $object->status = 1;
+                $object->save();
+
                 $stakeCon = app('App\Http\Controllers\Users\StakeController');
                 $stakeCon->setStakeActivation($object->member_id, $object->stake_id, $object->amount, $object->id);
 
@@ -223,19 +266,13 @@ class StakeReportController extends Controller
                     'message' => 'Request approved. ID topped up successfully.',
                     'error' => '',
                 ], 200);
-            }
-
-            $object->status = 3;
-            $object->save();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Request rejected.',
-                'error' => '',
-            ], 200);
-        } catch (\Exception $exception) {
+            });
+        } catch (\Throwable $exception) {
             Log::error($exception);
-            return response()->json(['success' => false, 'error' => 'An error occurred processing.'], 200);
+            return response()->json([
+                'success' => false,
+                'error' => 'Approve failed: '.$exception->getMessage(),
+            ], 200);
         }
     }
 
