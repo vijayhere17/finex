@@ -11,4 +11,14 @@ class LevelRoiLog extends Model
     protected $fillable = [
         'member_id', 'from_id', 'daily_roi_log_id', 'level', 'percent', 'base_amount', 'amount', 'roi_date',
     ];
+
+    public function fromUser()
+    {
+        return $this->belongsTo(User::class, 'from_id');
+    }
+
+    public function member()
+    {
+        return $this->belongsTo(User::class, 'member_id');
+    }
 }

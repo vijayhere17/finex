@@ -31,7 +31,13 @@ class ProcessDaily extends Command
         $summary = app(DailyRoiService::class)->distribute($date);
 
         Log::info('Finex Daily ROI end', $summary);
-        $this->info('Paid: '.$summary['paid'].' | Skipped: '.$summary['skipped'].' | Closed: '.$summary['closed'].' | Date: '.$summary['roiDate']);
+        $this->info(
+            'Paid: '.$summary['paid']
+            .' | LevelROI: '.($summary['levelPaid'] ?? 0)
+            .' | Skipped: '.$summary['skipped']
+            .' | Closed: '.$summary['closed']
+            .' | Date: '.$summary['roiDate']
+        );
 
         // Legacy reward / locked-reward / salary crons disabled for new compensation plan.
         if (config('income.legacy_reward_cron_enabled', false)) {
