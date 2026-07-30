@@ -100,7 +100,7 @@ function initiallize() {
                 name: 'id',
                 render: function(data, type, full, meta) {
                     if(PHP2JS.data.status == 0){
-                        return '<a href="javascript:" class="btn btn-info btn-sm btn-icon icon-left btn-info"><i class="entypo-pencil"></i>Approved</a>&nbsp;&nbsp;<a href="javascript:" class="btn btn-danger btn-sm btn-icon icon-left btn-danger"><i class="entypo-cancel"></i>Rejected</a>';
+                        return '<a href="javascript:;" onclick="actionStakeReq('+full.id+', 2)" class="btn btn-info btn-sm btn-icon icon-left"><i class="entypo-check"></i>Approve</a>&nbsp;&nbsp;<a href="javascript:;" onclick="actionStakeReq('+full.id+', 3)" class="btn btn-danger btn-sm btn-icon icon-left"><i class="entypo-cancel"></i>Reject</a>';
                     }else{
                         return '';
                     }
@@ -108,6 +108,45 @@ function initiallize() {
                 searchable: false
             }
         ]
+    });
+}
+
+// Approve (2) → activate slot / Reject (3) → mark failed. Used while real USDT pay is commented out.
+function actionStakeReq(id, status)
+{
+    var label = (status == 2) ? 'approve and topup' : 'reject';
+    if (!confirm('Are you sure you want to ' + label + ' this request?')) {
+        return;
+    }
+
+    var reqObj = {
+        _token: $("#token").val(),
+        stake_req_id: id,
+        status: status
+    };
+
+    showMask();
+
+    $.ajax({
+        type: 'POST',
+        url: BASEPATH + "/admin/process-stake-request-action",
+        data: reqObj,
+        dataType: 'json',
+        success: function(result) {
+            if (result.success) {
+                showSuccess(result.message || 'Updated successfully!');
+                oTable.draw();
+            } else {
+                showError(result.error || Errors[result.error_code] || 'Request failed.');
+            }
+            hideMask();
+        },
+        statusCode: {
+            500: function() {
+                showError("An error occurred. Please try later.");
+                hideMask();
+            }
+        }
     });
 }
 

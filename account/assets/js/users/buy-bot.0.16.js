@@ -133,6 +133,13 @@ async function processstake()
 
     blockui();
 
+    // TEMP (testing incomes): skip real USDT — create Pending request for admin approve.
+    // After testing, delete this TEMP block and uncomment the REAL USDT PAYMENT block below.
+    submitHashRequest(0, payment, 0, 'TEST-PENDING-' + Date.now());
+    return;
+
+    /*
+    // ===== REAL USDT PAYMENT (restore after testing) =====
     await connectwallet();
 
     if(decimal == 18)
@@ -181,6 +188,8 @@ async function processstake()
         erroralert(err.message || "An unexpected error occurred.");
         unblockui();
     }
+    // ===== END REAL USDT PAYMENT =====
+    */
 }
 
 async function submitHashRequest(id, payment, status, hash)
@@ -206,10 +215,11 @@ async function submitHashRequest(id, payment, status, hash)
         success: function(result) {
             if (result.success) {
                 rid = result.id;
-                if(status == 2)
+                // status 0 = Pending (test mode) | status 2 = Success after on-chain pay
+                if(status == 0 || status == 2)
                 {
                     unblockui();
-                    successalert(result.message)
+                    successalert(result.message || 'Topup request submitted. Waiting for admin approval.');
                     window.location.href = BASEPATH+'/bot-request';
                 }
             } else {
