@@ -3,6 +3,11 @@
 /**
  * Finex on-chain payment (BSC).
  * For proper testnet testing use network=testnet (chain 97) + MockUSDT + FinexVault.
+ *
+ * Live FinexVault (BSC Testnet): 0x99a532bb04b0d3B76737Ed757476B175d3F2C066
+ * That vault's payment token is returned by usdt() — currently:
+ *   0x71550e7710baf92843077136e428ae912613d6bf
+ * invest signature on that vault: invest(uint8 slotNumber, address sponsor, uint256 offchainId)
  */
 
 $network = env('BLOCKCHAIN_NETWORK', 'testnet'); // testnet | mainnet
@@ -12,8 +17,8 @@ $networks = [
         'chain_id' => 97,
         'rpc_url' => env('BLOCKCHAIN_RPC_URL', 'https://data-seed-prebsc-1-s1.binance.org:8545'),
         'explorer' => 'https://testnet.bscscan.com',
-        // Your deployed MockUSDT on BSC Testnet (from live Finex setup)
-        'usdt_address' => env('BLOCKCHAIN_USDT_ADDRESS', '0x65100813fEB38174Fd26457BbD13dc75D5E5D74c'),
+        // Must match FinexVault.usdt() on the deployed vault (not a random MockUSDT).
+        'usdt_address' => env('BLOCKCHAIN_USDT_ADDRESS', '0x71550e7710baf92843077136e428ae912613d6bf'),
         'usdt_decimals' => (int) env('BLOCKCHAIN_USDT_DECIMALS', 18),
     ],
     'mainnet' => [
@@ -27,11 +32,11 @@ $networks = [
 
 $active = $networks[$network] ?? $networks['testnet'];
 
-// Minimal FinexVault ABI used by buy-bot invest()
+// ABI decoded from live FinexVault bytecode / openchain signatures
 $defaultVaultAbi = [
     [
         'inputs' => [
-            ['internalType' => 'uint256', 'name' => 'slotNumber', 'type' => 'uint256'],
+            ['internalType' => 'uint8', 'name' => 'slotNumber', 'type' => 'uint8'],
             ['internalType' => 'address', 'name' => 'sponsor', 'type' => 'address'],
             ['internalType' => 'uint256', 'name' => 'offchainId', 'type' => 'uint256'],
         ],
@@ -42,11 +47,47 @@ $defaultVaultAbi = [
     ],
     [
         'inputs' => [
-            ['internalType' => 'address', 'name' => 'user', 'type' => 'address'],
+            ['internalType' => 'address', 'name' => 'sponsor', 'type' => 'address'],
         ],
-        'name' => 'currentSlot',
+        'name' => 'register',
+        'outputs' => [],
+        'stateMutability' => 'nonpayable',
+        'type' => 'function',
+    ],
+    [
+        'inputs' => [],
+        'name' => 'usdt',
+        'outputs' => [
+            ['internalType' => 'address', 'name' => '', 'type' => 'address'],
+        ],
+        'stateMutability' => 'view',
+        'type' => 'function',
+    ],
+    [
+        'inputs' => [
+            ['internalType' => 'uint8', 'name' => 'slotNumber', 'type' => 'uint8'],
+        ],
+        'name' => 'getSlotAmount',
         'outputs' => [
             ['internalType' => 'uint256', 'name' => '', 'type' => 'uint256'],
+        ],
+        'stateMutability' => 'view',
+        'type' => 'function',
+    ],
+    [
+        'inputs' => [],
+        'name' => 'MAX_SLOT',
+        'outputs' => [
+            ['internalType' => 'uint256', 'name' => '', 'type' => 'uint256'],
+        ],
+        'stateMutability' => 'view',
+        'type' => 'function',
+    ],
+    [
+        'inputs' => [],
+        'name' => 'paused',
+        'outputs' => [
+            ['internalType' => 'bool', 'name' => '', 'type' => 'bool'],
         ],
         'stateMutability' => 'view',
         'type' => 'function',
@@ -72,7 +113,7 @@ return [
     'usdt_decimals' => (int) $active['usdt_decimals'],
 
     // Deployed FinexVault on the selected network — REQUIRED for on-chain Activate
-    'finex_vault_address' => env('FINEX_VAULT_ADDRESS', ''),
+    'finex_vault_address' => env('FINEX_VAULT_ADDRESS', '0x99a532bb04b0d3B76737Ed757476B175d3F2C066'),
     'finex_vault_abi' => $vaultAbi,
 
     // When true, status=2 with a tx hash activates even if RPC receipt check is soft-fail

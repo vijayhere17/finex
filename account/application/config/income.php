@@ -20,7 +20,7 @@ return [
     'withdrawal_private_key' => env('WITHDRAWAL_PRIVATE_KEY', ''),
 
     // Fallback only — live USDT address comes from config/blockchain.php
-    'usdt_contract' => env('BLOCKCHAIN_USDT_ADDRESS', '0x65100813fEB38174Fd26457BbD13dc75D5E5D74c'),
+    'usdt_contract' => env('BLOCKCHAIN_USDT_ADDRESS', '0x71550e7710baf92843077136e428ae912613d6bf'),
 
     // Fixed sequential slots (Slot 1 .. Slot 12)
     'slot_amounts' => [10, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120, 10240, 20480],

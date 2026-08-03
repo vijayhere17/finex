@@ -148,19 +148,16 @@ async function processstake()
     // Refresh payable from the fixed slot amount before sending chain tx.
     getcalculation();
 
-    // -------------------------------------------------------------------------
-    // TEMP testing: no MetaMask / no FinexVault — Pending request → Admin Approve
-    // Set USE_ADMIN_APPROVE_TEMP = false above to restore on-chain vault buy.
-    // -------------------------------------------------------------------------
+    // Offline admin-approve only when explicitly enabled (not for normal testnet).
     if (USE_ADMIN_APPROVE_TEMP) {
         blockui();
         submitHashRequest(0, payment, 0, 'TEST-PENDING-' + Date.now(), true);
         return;
     }
 
-    // Instant on-chain buy only — no pending / admin approval path.
+    // Proper testnet/mainnet: FinexVault invest via MetaMask
     if (!blockchainEnabled || !finexVaultAddress || !finexVaultAbi.length) {
-        erroralert('Smart contract vault is not configured. Set FINEX_VAULT_ADDRESS in .env and reload.');
+        erroralert('Smart contract vault is not configured. Set FINEX_VAULT_ADDRESS + BLOCKCHAIN_NETWORK=testnet in .env, then php artisan config:clear.');
         return false;
     }
 
@@ -241,6 +238,41 @@ async function ensureBscNetwork()
     }
 }
 
+function formatRevertError(err)
+{
+    const msg = (err && (err.message || err.toString())) || 'Vault transaction failed';
+    const data = (err && (err.data || (err.cause && err.cause.data))) || '';
+    const dataStr = typeof data === 'string' ? data : (data && data.data) ? data.data : '';
+
+    // Wrong function selector / empty revert — usually ABI mismatch
+    if (/execution reverted:\s*0x\s*$/i.test(msg) || dataStr === '0x') {
+        return msg + ' — vault rejected the call (wrong ABI/network/USDT, or slot sequence).';
+    }
+
+    // OpenZeppelin custom errors
+    if (typeof dataStr === 'string' && dataStr.indexOf('0xfb8f41b2') === 0) {
+        return 'USDT allowance too low for FinexVault. Approve was for the wrong token or amount. Use the vault USDT token, then retry.';
+    }
+    if (typeof dataStr === 'string' && dataStr.indexOf('0xe450d38c') === 0) {
+        return 'Insufficient vault USDT balance. Fund the wallet with the token returned by FinexVault.usdt(), then retry.';
+    }
+
+    return msg;
+}
+
+async function sendContractTx(tx, from)
+{
+    let gasprice = await web3.eth.getGasPrice();
+    gasprice = Math.round(Number(gasprice) * 1.2);
+    let gas_estimate = await tx.estimateGas({ from: from });
+    gas_estimate = Math.round(Number(gas_estimate) * 1.2);
+    return tx.send({
+        from: from,
+        gas: web3.utils.toHex(gas_estimate),
+        gasPrice: web3.utils.toHex(gasprice),
+    });
+}
+
 async function investViaFinexVault(payment, decimal, amount)
 {
     try {
@@ -255,101 +287,122 @@ async function investViaFinexVault(payment, decimal, amount)
             10
         );
 
-        var amountwei;
-        if (decimal == 18) {
-            amountwei = web3.utils.toWei(payable_coin.toString(), 'ether');
-        } else if (decimal == 6) {
-            amountwei = web3.utils.toWei(amount.toString(), 'mwei');
-        } else {
-            amountwei = web3.utils.toWei(payable_coin.toString(), 'ether');
-        }
-
-        if (!contract_addr || !web3.utils.isAddress(contract_addr)) {
-            erroralert('USDT contract address missing. Set BLOCKCHAIN_USDT_ADDRESS in .env (your MockUSDT).');
+        if (!slotNumber || slotNumber < 1 || slotNumber > 12) {
+            erroralert('Invalid slot number for vault invest.');
             unblockui();
             return;
         }
+
         if (!finexVaultAddress || !web3.utils.isAddress(finexVaultAddress)) {
             erroralert('Vault address missing. Set FINEX_VAULT_ADDRESS in .env.');
             unblockui();
             return;
         }
 
-        // Prefer minimal ERC20 ABI for balance/allowance/approve (avoids ABI mismatch toast)
+        const vault = new web3.eth.Contract(finexVaultAbi, finexVaultAddress);
+
+        // Always use the token the vault actually pulls (avoids approving a different MockUSDT).
+        let paymentToken = contract_addr;
+        try {
+            const onchainUsdt = await vault.methods.usdt().call();
+            if (onchainUsdt && web3.utils.isAddress(onchainUsdt)) {
+                paymentToken = onchainUsdt;
+                contract_addr = onchainUsdt;
+            }
+        } catch (usdtErr) {
+            console.log('vault.usdt() failed, falling back to configured USDT', usdtErr);
+        }
+
+        if (!paymentToken || !web3.utils.isAddress(paymentToken)) {
+            erroralert('USDT contract address missing. Set BLOCKCHAIN_USDT_ADDRESS to FinexVault.usdt().');
+            unblockui();
+            return;
+        }
+
+        // Exact on-chain slot price (18 decimals on testnet vault).
+        let amountwei;
+        try {
+            amountwei = await vault.methods.getSlotAmount(slotNumber).call();
+        } catch (priceErr) {
+            console.log('getSlotAmount failed, using UI amount', priceErr);
+            if (decimal == 6) {
+                amountwei = web3.utils.toWei(String(amount), 'mwei');
+            } else {
+                amountwei = web3.utils.toWei(String(amount), 'ether');
+            }
+        }
+
         const erc20Abi = [
             {"inputs":[{"name":"account","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
             {"inputs":[{"name":"owner","type":"address"},{"name":"spender","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
             {"inputs":[{"name":"spender","type":"address"},{"name":"amount","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"}
         ];
-        const usdt = new web3.eth.Contract(erc20Abi, contract_addr);
-        const vault = new web3.eth.Contract(finexVaultAbi, finexVaultAddress);
+        const usdt = new web3.eth.Contract(erc20Abi, paymentToken);
 
         let balance;
         try {
             balance = await usdt.methods.balanceOf(accounts[0]).call();
         } catch (balErr) {
             erroralert(
-                'Cannot read USDT on this network. Use BSC Testnet and set BLOCKCHAIN_USDT_ADDRESS to your MockUSDT: 0x65100813fEB38174Fd26457BbD13dc75D5E5D74c'
+                'Cannot read vault USDT on this network. Switch MetaMask to BSC Testnet and fund token: ' + paymentToken
             );
             unblockui();
             return;
         }
         if (BigInt(balance) < BigInt(amountwei)) {
-            erroralert('Insufficient Mock USDT balance. Use faucet/transfer to this wallet, then retry.');
+            erroralert(
+                'Insufficient vault USDT balance. Need slot amount on token ' + paymentToken +
+                ' (FinexVault.usdt). Current balance is too low.'
+            );
             unblockui();
             return;
         }
 
-        // Ensure allowance for vault
         let allowance = await usdt.methods.allowance(accounts[0], finexVaultAddress).call();
         if (BigInt(allowance) < BigInt(amountwei)) {
-            const approveTx = usdt.methods.approve(finexVaultAddress, amountwei);
-            let gasprice = await web3.eth.getGasPrice();
-            gasprice = Math.round(gasprice * 1.2);
-            let gas_estimate = await approveTx.estimateGas({ from: accounts[0] });
-            gas_estimate = Math.round(gas_estimate * 1.2);
-            await approveTx.send({
-                from: accounts[0],
-                gas: web3.utils.toHex(gas_estimate),
-                gasPrice: web3.utils.toHex(gasprice),
-            });
+            await sendContractTx(
+                usdt.methods.approve(finexVaultAddress, amountwei),
+                accounts[0]
+            );
         }
 
         let sponsor = (window.sponsorWalletAddress || PHP2JS.data.sponsor_wallet || '0x0000000000000000000000000000000000000000');
-        if (!sponsor || sponsor === '') {
+        if (!sponsor || !web3.utils.isAddress(sponsor)) {
             sponsor = '0x0000000000000000000000000000000000000000';
         }
 
-        const offchainId = rid || 0;
-        const investTx = vault.methods.invest(slotNumber, sponsor, offchainId);
+        // New wallets must register before / as part of invest on this vault.
+        try {
+            await sendContractTx(vault.methods.register(sponsor), accounts[0]);
+        } catch (regErr) {
+            // Already registered (or register not required) — continue to invest.
+            console.log('register skipped/failed', regErr);
+        }
 
-        let gasprice2 = await web3.eth.getGasPrice();
-        gasprice2 = Math.round(gasprice2 * 1.2);
-        let gas2 = await investTx.estimateGas({ from: accounts[0] });
-        gas2 = Math.round(gas2 * 1.2);
+        const offchainId = rid || 0;
+        // Live FinexVault selector: invest(uint8,address,uint256) — NOT uint256 slot.
+        const investTx = vault.methods.invest(slotNumber, sponsor, offchainId);
 
         await investTx.send({
             from: accounts[0],
-            gas: web3.utils.toHex(gas2),
-            gasPrice: web3.utils.toHex(gasprice2),
+            gas: web3.utils.toHex(Math.round(Number(await investTx.estimateGas({ from: accounts[0] })) * 1.2)),
+            gasPrice: web3.utils.toHex(Math.round(Number(await web3.eth.getGasPrice()) * 1.2)),
         }).on('transactionHash', (hash) => {
-            // Record processing hash (status 1) — not pending admin.
             submitHashRequest(rid, payment, 1, hash, false);
         }).on('receipt', (receipt) => {
             if (receipt.status) {
-                // Instant activation after confirmed vault invest.
                 submitHashRequest(rid, payment, 2, receipt.transactionHash, true);
             } else {
                 erroralert('On-chain investment failed.');
                 unblockui();
             }
         }).on('error', (error) => {
-            erroralert(error.message || 'Vault investment failed.');
+            erroralert(formatRevertError(error));
             unblockui();
         });
     } catch (err) {
         console.log(err);
-        erroralert(err.message || 'An unexpected error occurred.');
+        erroralert(formatRevertError(err));
         unblockui();
     }
 }

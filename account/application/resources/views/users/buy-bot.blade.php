@@ -313,12 +313,12 @@
                             </li>
                         </ul>
 
-                        {{-- Keep existing USDT payment option / blockchain flow --}}
+                        {{-- BSC testnet MockUSDT / mainnet USDT via FinexVault (address from blockchain.php) --}}
                         <div class="price-check border rounded p-3 mb-3">
                             <div class="form-check">
-                                <input type="radio" name="paymentmode" class="form-check-input input-primary" id="payment_alc" data="1" contract="0x55d398326f99059fF775485246999027B3197955" decimal="18" value="1" checked>
+                                <input type="radio" name="paymentmode" class="form-check-input input-primary" id="payment_alc" data="1" contract="{{ $usdt_con_addr }}" decimal="18" value="1" checked>
                                 <label class="form-check-label d-block" for="payment_alc">
-                                    <span class="h5 mb-0 d-block">Pay USDT (BEP20)</span>
+                                    <span class="h5 mb-0 d-block">Pay USDT (BEP20) — {{ config('blockchain.network') === 'testnet' ? 'BSC Testnet' : 'BSC Mainnet' }}</span>
                                 </label>
                             </div>
                         </div>
@@ -362,7 +362,7 @@ window.slotMeta = {
     direct_roi_percent: {{ (float) $direct_roi_percent }}
 };
 </script>
-<script src="{{ URL::to('/') }}/assets/js/users/buy-bot.0.17.js?v=2"></script>
+<script src="{{ URL::to('/') }}/assets/js/users/buy-bot.0.17.js?v=5"></script>
 <script>
     connectwallet();
 
