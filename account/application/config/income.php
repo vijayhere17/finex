@@ -19,7 +19,8 @@ return [
     // Optional: set only on server .env — never commit a private key to git
     'withdrawal_private_key' => env('WITHDRAWAL_PRIVATE_KEY', ''),
 
-    'usdt_contract' => '0x55d398326f99059fF775485246999027B3197955',
+    // Fallback only — live USDT address comes from config/blockchain.php
+    'usdt_contract' => env('BLOCKCHAIN_USDT_ADDRESS', '0x65100813fEB38174Fd26457BbD13dc75D5E5D74c'),
 
     // Fixed sequential slots (Slot 1 .. Slot 12)
     'slot_amounts' => [10, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120, 10240, 20480],

@@ -8,9 +8,9 @@ let payable_coin = 0;
 
 const deposit_addr = PHP2JS.data.to_address;
 
-// TEMP: true = skip FinexVault / MetaMask, create Pending request for admin Approve.
-// After testing incomes, set to false to restore on-chain vault buy.
-const USE_ADMIN_APPROVE_TEMP = true;
+// false = proper FinexVault on-chain buy (BSC testnet / mainnet).
+// true  = skip chain and create Pending for admin Approve (offline testing only).
+const USE_ADMIN_APPROVE_TEMP = false;
 
 // FinexVault (BSC) — instant on-chain buy (used only when USE_ADMIN_APPROVE_TEMP = false).
 const blockchainEnabled = !!(PHP2JS.data.blockchain_enabled);
