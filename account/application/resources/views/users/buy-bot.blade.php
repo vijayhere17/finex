@@ -362,7 +362,7 @@ window.slotMeta = {
     direct_roi_percent: {{ (float) $direct_roi_percent }}
 };
 </script>
-<script src="{{ URL::to('/') }}/assets/js/users/buy-bot.0.17.js?v=5"></script>
+<script src="{{ URL::to('/') }}/assets/js/users/buy-bot.0.17.js?v=6"></script>
 <script>
     connectwallet();
 

@@ -206,6 +206,11 @@ async function ensureBscNetwork()
     }
 
     const hexId = '0x' + Number(bscChainId).toString(16);
+    const testRpcs = [
+        'https://bsc-testnet-rpc.publicnode.com',
+        'https://bsc-testnet.public.blastapi.io',
+        'https://data-seed-prebsc-1-s1.binance.org:8545',
+    ];
     try {
         await window.ethereum.request({
             method: 'wallet_switchEthereumChain',
@@ -220,11 +225,7 @@ async function ensureBscNetwork()
                     chainId: hexId,
                     chainName: bscChainId === 97 ? 'BSC Testnet' : 'BNB Smart Chain',
                     nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
-                    rpcUrls: [
-                        bscChainId === 97
-                            ? 'https://data-seed-prebsc-1-s1.binance.org:8545'
-                            : 'https://bsc-dataseed1.binance.org/'
-                    ],
+                    rpcUrls: bscChainId === 97 ? testRpcs : ['https://bsc-dataseed1.binance.org/'],
                     blockExplorerUrls: [
                         bscChainId === 97
                             ? 'https://testnet.bscscan.com'
@@ -243,6 +244,11 @@ function formatRevertError(err)
     const msg = (err && (err.message || err.toString())) || 'Vault transaction failed';
     const data = (err && (err.data || (err.cause && err.cause.data))) || '';
     const dataStr = typeof data === 'string' ? data : (data && data.data) ? data.data : '';
+
+    // MetaMask / RPC flake on BSC Testnet (very common)
+    if (/network\s*error/i.test(msg) || /Failed to fetch/i.test(msg) || / eth_getTransactionReceipt/i.test(msg)) {
+        return 'BSC Testnet RPC network error. In MetaMask → Settings → Networks → BNB Smart Chain Testnet, set RPC to https://bsc-testnet-rpc.publicnode.com then retry Activate. If a tx already succeeded on BscScan, refresh the page.';
+    }
 
     // Wrong function selector / empty revert — usually ABI mismatch
     if (/execution reverted:\s*0x\s*$/i.test(msg) || dataStr === '0x') {
@@ -271,6 +277,21 @@ async function sendContractTx(tx, from)
         gas: web3.utils.toHex(gas_estimate),
         gasPrice: web3.utils.toHex(gasprice),
     });
+}
+
+/** Only pop MetaMask Register when the wallet is not registered yet. */
+async function ensureVaultRegistered(vault, sponsor, from)
+{
+    const regTx = vault.methods.register(sponsor);
+    try {
+        await regTx.estimateGas({ from: from });
+    } catch (e) {
+        // Already registered / not required — no MetaMask popup.
+        console.log('register not needed', e);
+        return false;
+    }
+    await sendContractTx(regTx, from);
+    return true;
 }
 
 async function investViaFinexVault(payment, decimal, amount)
@@ -358,6 +379,21 @@ async function investViaFinexVault(payment, decimal, amount)
             return;
         }
 
+        let sponsor = (window.sponsorWalletAddress || PHP2JS.data.sponsor_wallet || '0x0000000000000000000000000000000000000000');
+        if (!sponsor || !web3.utils.isAddress(sponsor)) {
+            sponsor = '0x0000000000000000000000000000000000000000';
+        }
+
+        // Register only if needed (avoids extra MetaMask popup + RPC flake).
+        try {
+            await ensureVaultRegistered(vault, sponsor, accounts[0]);
+        } catch (regErr) {
+            console.log('register failed', regErr);
+            erroralert(formatRevertError(regErr));
+            unblockui();
+            return;
+        }
+
         let allowance = await usdt.methods.allowance(accounts[0], finexVaultAddress).call();
         if (BigInt(allowance) < BigInt(amountwei)) {
             await sendContractTx(
@@ -366,40 +402,38 @@ async function investViaFinexVault(payment, decimal, amount)
             );
         }
 
-        let sponsor = (window.sponsorWalletAddress || PHP2JS.data.sponsor_wallet || '0x0000000000000000000000000000000000000000');
-        if (!sponsor || !web3.utils.isAddress(sponsor)) {
-            sponsor = '0x0000000000000000000000000000000000000000';
-        }
-
-        // New wallets must register before / as part of invest on this vault.
-        try {
-            await sendContractTx(vault.methods.register(sponsor), accounts[0]);
-        } catch (regErr) {
-            // Already registered (or register not required) — continue to invest.
-            console.log('register skipped/failed', regErr);
-        }
-
         const offchainId = rid || 0;
         // Live FinexVault selector: invest(uint8,address,uint256) — NOT uint256 slot.
         const investTx = vault.methods.invest(slotNumber, sponsor, offchainId);
+        let investHash = null;
 
-        await investTx.send({
-            from: accounts[0],
-            gas: web3.utils.toHex(Math.round(Number(await investTx.estimateGas({ from: accounts[0] })) * 1.2)),
-            gasPrice: web3.utils.toHex(Math.round(Number(await web3.eth.getGasPrice()) * 1.2)),
-        }).on('transactionHash', (hash) => {
-            submitHashRequest(rid, payment, 1, hash, false);
-        }).on('receipt', (receipt) => {
-            if (receipt.status) {
-                submitHashRequest(rid, payment, 2, receipt.transactionHash, true);
+        try {
+            const gas2 = Math.round(Number(await investTx.estimateGas({ from: accounts[0] })) * 1.2);
+            const gasPrice2 = Math.round(Number(await web3.eth.getGasPrice()) * 1.2);
+            const receipt = await investTx.send({
+                from: accounts[0],
+                gas: web3.utils.toHex(gas2),
+                gasPrice: web3.utils.toHex(gasPrice2),
+            }).on('transactionHash', (hash) => {
+                investHash = hash;
+                submitHashRequest(rid, payment, 1, hash, false);
+            });
+
+            if (receipt && receipt.status) {
+                submitHashRequest(rid, payment, 2, receipt.transactionHash || investHash, true);
             } else {
                 erroralert('On-chain investment failed.');
                 unblockui();
             }
-        }).on('error', (error) => {
-            erroralert(formatRevertError(error));
-            unblockui();
-        });
+        } catch (investErr) {
+            // RPC often throws "Network Error" after tx is already mined — still finalize if we have hash.
+            if (investHash) {
+                console.log('invest receipt RPC error; confirming by hash', investHash, investErr);
+                submitHashRequest(rid, payment, 2, investHash, true);
+                return;
+            }
+            throw investErr;
+        }
     } catch (err) {
         console.log(err);
         erroralert(formatRevertError(err));
@@ -414,9 +448,11 @@ async function submitHashRequest(id, payment, status, hash, finalize)
 {
     const stake_id = $("input[name=package]:checked").attr('stakeid');
     const amount = $("#topup_amount").val();
+    // Refresh CSRF in case the MetaMask flow took a long time.
+    const csrf = ($("#token").val() || token || '');
 
     var reqObj = {
-        _token: token,
+        _token: csrf,
         id : id,
         stake_id : stake_id,
         payment : payment,
@@ -469,9 +505,13 @@ async function submitHashRequest(id, payment, status, hash, finalize)
                 }
             }
         },
-        error: function() {
+        error: function(xhr) {
             if (finalize || status == 0 || status == 2) {
-                erroralert('Network error while confirming activation.');
+                var code = xhr && xhr.status ? xhr.status : '?';
+                erroralert(
+                    'Site confirm failed (HTTP ' + code + '). Tx may still be on-chain. ' +
+                    'Refresh login and check My Slots / BscScan. Hash: ' + (hash || '')
+                );
                 unblockui();
             }
         }
