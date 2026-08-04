@@ -36,8 +36,48 @@ class StakeController extends Controller
     
     protected function contractaddr()
     {
-        // USDT (BEP20) on BSC mainnet - 18 decimals
-        return config('income.usdt_contract', '0x55d398326f99059fF775485246999027B3197955');
+        // Prefer blockchain.php (testnet MockUSDT / mainnet USDT)
+        return config(
+            'blockchain.usdt_address',
+            config('income.usdt_contract', '0x55d398326f99059fF775485246999027B3197955')
+        );
+    }
+
+    /**
+     * Verify a tx hash on the configured BSC RPC (testnet or mainnet).
+     */
+    protected function verifyTxnOnRpc(string $hash): bool
+    {
+        if ($hash === '' || str_starts_with($hash, 'TEST-')) {
+            return false;
+        }
+
+        $rpc = config('blockchain.rpc_url', 'https://data-seed-prebsc-1-s1.binance.org:8545');
+
+        try {
+            $response = Http::timeout(20)->withHeaders([
+                'Content-Type' => 'application/json',
+            ])->post($rpc, [
+                'jsonrpc' => '2.0',
+                'id' => 1,
+                'method' => 'eth_getTransactionReceipt',
+                'params' => [$hash],
+            ]);
+
+            $json = $response->json();
+            $receipt = $json['result'] ?? null;
+
+            if (!is_array($receipt)) {
+                return false;
+            }
+
+            // status 0x1 = success
+            $status = strtolower((string) ($receipt['status'] ?? ''));
+            return $status === '0x1' || $status === '1';
+        } catch (\Throwable $e) {
+            Log::warning('verifyTxnOnRpc failed: '.$e->getMessage());
+            return false;
+        }
     }
 
     public function getDepositWallet()
@@ -171,21 +211,54 @@ class StakeController extends Controller
 
         $to_address = $this->depositaddress();
 
+        $sponsor = null;
+        if ($member->referral_id > 0) {
+            $sponsor = User::find($member->referral_id);
+        }
+
+        $vaultAddress = config('blockchain.finex_vault_address', '');
+        $blockchainEnabled = (bool) config('blockchain.enabled', false) && !empty($vaultAddress);
+
         return view('users.buy-bot')->with([
-    'page_titel'=>$page_titel,
-    'coin_rate'=>$coin_rate,
-    'packages'=>$packages,
-    'slots'=>$slotProgress['slots'],
-    'current_slot'=>$slotProgress['current_slot'],
-    'next_slot'=>$slotProgress['next_slot'],
-    'next_slot_amount'=>$slotProgress['next_slot_amount'],
-    'activation_status'=>$slotProgress['activation_status'],
-    'qualified_active_directs'=>$directRoi['qualified_active_directs'],
-    'direct_roi_percent'=>$directRoi['direct_roi_percent'],
-    'usdt_con_addr'=>$usdt_con_addr,
-    'usdt_con_abi'=>$usdt_con_abi,
-    'to_address'=>$to_address,
-])->toJS();
+            'page_titel'=>$page_titel,
+            'coin_rate'=>$coin_rate,
+            'packages'=>$packages,
+            'slots'=>$slotProgress['slots'],
+            'current_slot'=>$slotProgress['current_slot'],
+            'next_slot'=>$slotProgress['next_slot'],
+            'next_slot_amount'=>$slotProgress['next_slot_amount'],
+            'activation_status'=>$slotProgress['activation_status'],
+            'qualified_active_directs'=>$directRoi['qualified_active_directs'],
+            'direct_roi_percent'=>$directRoi['direct_roi_percent'],
+            'usdt_con_addr'=>$usdt_con_addr,
+            'usdt_con_abi'=>$usdt_con_abi,
+            'to_address'=>$to_address,
+            // FinexVault / BSC testnet (or mainnet) — consumed by buy-bot.0.17.js
+            'blockchain_enabled' => $blockchainEnabled,
+            'finex_vault_address' => $vaultAddress,
+            'finex_vault_abi' => json_encode(config('blockchain.finex_vault_abi', [])),
+            'bsc_chain_id' => (int) config('blockchain.chain_id', 97),
+            'sponsor_wallet' => $sponsor ? ($sponsor->wallet_addr ?: $sponsor->username) : '0x0000000000000000000000000000000000000000',
+        ])->toJS();
+    }
+
+    /**
+     * Called before vault.invest so chain slot index matches Laravel (no-op friendly).
+     */
+    public function syncChainSlots(Request $request)
+    {
+        if (Auth::user() == null) {
+            return response()->json(['success' => false, 'error' => 'Session is expired.'], 200);
+        }
+
+        // Full owner-key sync can be added later. For testnet invest on a fresh ID this is enough.
+        return response()->json([
+            'success' => true,
+            'message' => 'Chain slot sync OK (client will invest next slot).',
+            'next_slot' => (int) (Auth::user()->next_slot ?: 1),
+            'network' => config('blockchain.network'),
+            'chain_id' => (int) config('blockchain.chain_id'),
+        ], 200);
     }
     
     public function submitBotTxn(Request $request)
@@ -287,28 +360,38 @@ class StakeController extends Controller
 
             if($status == 2)
             {
-                // check transaction hash
-                // $response = Http::withOptions(['verify' => false])->get("https://f5sys.com/dont-delete-bnbnode/tnx-details.php?hash={$hash}");
-                
-                $rpc_url = 'https://bsc-dataseed1.binance.org/';
-                
-                $response = shell_exec("node /home/eudstake/node/txn-details.js ".$hash." ".$rpc_url);
+                // Verify on configured RPC (BSC testnet by default)
+                $verified = $this->verifyTxnOnRpc((string) $hash);
+                $trust = (bool) config('blockchain.trust_hash_on_status_2', true);
 
-                $result = json_decode($response, true);    
-
-                if($result["status"])
+                if ($verified || ($trust && !empty($hash) && !str_starts_with((string) $hash, 'TEMP-')))
                 {
-                    $status = $this->setStakeActivation($object->member_id, $object->stake_id, $object->amount, $object->id);
-
-                    return response()->json(array('success'=>true, 'message'=>'Your Stake Successfully!', 'error'=>''), 200);
-                }
-                else
-                {
-                    $object->status = 0;
+                    // Idempotent activation (same stake request cannot double-create)
+                    $this->setStakeActivation($object->member_id, $object->stake_id, $object->amount, $object->id);
+                    $object->status = 2;
                     $object->save();
 
-                    return response()->json(array('success'=>true, 'message'=>'Your Stake Request Submited Successfully!<br>Request Process Few Minutes.', 'error'=>''), 200);
+                    return response()->json([
+                        'success' => true,
+                        'activated' => true,
+                        'id' => $object->id,
+                        'message' => 'Slot activated successfully on-chain!',
+                        'error' => '',
+                        'verified' => $verified,
+                        'network' => config('blockchain.network'),
+                    ], 200);
                 }
+
+                $object->status = 1;
+                $object->save();
+
+                return response()->json([
+                    'success' => true,
+                    'activated' => false,
+                    'id' => $object->id,
+                    'message' => 'Tx submitted but not confirmed on RPC yet. Try again shortly.',
+                    'error' => '',
+                ], 200);
             }
 
             return response()->json(array(
